@@ -9,7 +9,7 @@ import re
 import subprocess
 import sys
 
-# We are delibirately not using bot utils from the dart repo.
+# We are deliberately not using bot utils from the dart repo.
 
 PACKAGES_BUILDER = r'packages-(windows|linux|mac)-(.*)'
 
