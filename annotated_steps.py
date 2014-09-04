@@ -81,21 +81,22 @@ def BuildSDK(bot_info):
     RunProcess(args)
 
 def RunPackageTesting(bot_info):
+  standard_args = ['--suite-dir=third_party/pkg/%s' % bot_info.package_name,
+                   '--use-sdk', '--report', '--progress=buildbot',
+                   '--clear_browser_cache']
+
   with BuildStep('Test vm release mode', swallow_error=True):
     args = [sys.executable, 'tools/test.py',
-            '--suite-dir=third_party/pkg/%s' % bot_info.package_name,
-            '-mrelease', '-rvm', '-cnone']
+            '-mrelease', '-rvm', '-cnone'] + standard_args
     RunProcess(args)
   with BuildStep('Test vm debug mode', swallow_error=True):
     args = [sys.executable, 'tools/test.py',
-            '--suite-dir=third_party/pkg/%s' % bot_info.package_name,
-            '-mrelease', '-rvm', '-cnone']
+            '-mrelease', '-rvm', '-cnone'] + standard_args
     RunProcess(args)
 
   with BuildStep('Test dartium', swallow_error=True):
     args = [sys.executable, 'tools/test.py',
-            '--suite-dir=third_party/pkg/%s' % bot_info.package_name,
-            '-mrelease', '-rdartium', '-cnone']
+            '-mrelease', '-rdartium', '-cnone'] + standard_args
     RunProcess(args)
 
 
@@ -105,8 +106,8 @@ def RunPackageTesting(bot_info):
   for runtime in runtimes:
     with BuildStep('dart2js-%s' % runtime, swallow_error=True):
       args = [sys.executable, 'tools/test.py',
-              '--suite-dir=third_party/pkg/%s' % bot_info.package_name,
-              '-mrelease', '-r%s' % runtime, '-cdart2js', '-j1']
+              '-mrelease', '-r%s' % runtime, '-cdart2js', '-j1',
+              '--dart2js-batch'] + standard_args
       RunProcess(args)
 
 
