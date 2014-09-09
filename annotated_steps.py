@@ -115,7 +115,6 @@ def GetPackageCopy(bot_info, tempdir):
   package_path = GetPackagePath(bot_info)
   copy_path = os.path.join(tempdir, bot_info.package_name)
   shutil.copytree(package_path, copy_path, symlinks=False)
-  RunProcess(['cat', os.path.join(copy_path, '.status')])
   return copy_path
 
 def RunPub(path):
