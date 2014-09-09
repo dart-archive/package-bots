@@ -6,8 +6,10 @@
 
 import os
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 
 # We are deliberately not using bot utils from the dart repo.
 
@@ -59,6 +61,31 @@ class BuildStep(object):
       if self.swallow_error and isinstance(value, OSError):
         return True
 
+class TempDir(object):
+  def __init__(self, prefix=''):
+    self._temp_dir = None
+    self._prefix = prefix
+
+  def __enter__(self):
+    self._temp_dir = tempfile.mkdtemp(self._prefix)
+    return self._temp_dir
+
+  def __exit__(self, *_):
+    shutil.rmtree(self._temp_dir, ignore_errors=True)
+
+class ChangedWorkingDirectory(object):
+  def __init__(self, working_directory):
+    self._working_directory = working_directory
+
+  def __enter__(self):
+    self._old_cwd = os.getcwd()
+    print "Enter directory = ", self._working_directory
+    os.chdir(self._working_directory)
+
+  def __exit__(self, *_):
+    print "Enter directory = ", self._old_cwd
+    os.chdir(self._old_cwd)
+
 def RunProcess(command):
   """
   Runs command.
@@ -68,7 +95,8 @@ def RunProcess(command):
   """
   no_color_env = dict(os.environ)
   no_color_env['TERM'] = 'nocolor'
-
+  print "Running: %s" % ' '.join(command)
+  sys.stdout.flush()
   exit_code = subprocess.call(command, env=no_color_env)
   if exit_code != 0:
     raise OSError(exit_code)
@@ -80,10 +108,42 @@ def BuildSDK(bot_info):
             'create_sdk']
     RunProcess(args)
 
-def RunPackageTesting(bot_info):
-  standard_args = ['--suite-dir=third_party/pkg/%s' % bot_info.package_name,
+def GetPackagePath(bot_info):
+  return os.path.join('third_party', 'pkg', bot_info.package_name)
+
+def GetPackageCopy(bot_info, tempdir):
+  package_path = GetPackagePath(bot_info)
+  copy_path = os.path.join(tempdir, bot_info.package_name)
+  shutil.copytree(package_path, copy_path, symlinks=False)
+  RunProcess(['cat', os.path.join(copy_path, '.status')])
+  return copy_path
+
+def RunPub(path):
+  pub = os.path.join(os.getcwd(), 'out', 'ReleaseIA32',
+                     'dart-sdk', 'bin', 'pub')
+
+  # For now, assume pub
+  with ChangedWorkingDirectory(path):
+    args = [pub, 'upgrade']
+    RunProcess(args)
+
+# Major hack
+def FixupTestControllerJS(package_path):
+  test_controller = os.path.join(package_path, 'packages', 'unittest',
+                                 'test_controller.js')
+  dart_controller = os.path.join('tools', 'testing', 'dart',
+                                 'test_controller.js')
+  print 'Hack test controller by copying of  %s to %s' % (dart_controller,
+                                                          test_controller)
+  shutil.copy(dart_controller, test_controller)
+
+
+def RunPackageTesting(bot_info, package_path):
+  package_root = os.path.join(package_path, 'packages')
+  standard_args = ['--suite-dir=%s' % package_path,
                    '--use-sdk', '--report', '--progress=buildbot',
-                   '--clear_browser_cache']
+                   '--clear_browser_cache',
+                   '--package-root=%s' % package_root]
 
   with BuildStep('Test vm release mode', swallow_error=True):
     args = [sys.executable, 'tools/test.py',
@@ -93,7 +153,6 @@ def RunPackageTesting(bot_info):
     args = [sys.executable, 'tools/test.py',
             '-mrelease', '-rvm', '-cnone'] + standard_args
     RunProcess(args)
-
   with BuildStep('Test dartium', swallow_error=True):
     args = [sys.executable, 'tools/test.py',
             '-mrelease', '-rdartium', '-cnone'] + standard_args
@@ -115,4 +174,11 @@ if __name__ == '__main__':
   bot_info = GetBotInfo()
   print 'Bot info: %s' % bot_info
   BuildSDK(bot_info)
-  RunPackageTesting(bot_info)
+  # TODO(ricow): generalize
+  tempdir = os.path.join('out', 'ReleaseIA32', 'package_copy')
+  shutil.rmtree(tempdir, ignore_errors=True)
+  copy_path = GetPackageCopy(bot_info, tempdir)
+  print 'Running testing in copy of package in %s' % copy_path
+  RunPub(copy_path)
+  FixupTestControllerJS(copy_path)
+  RunPackageTesting(bot_info, copy_path)
