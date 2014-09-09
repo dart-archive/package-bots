@@ -30,6 +30,10 @@ class BotInfo(object):
 
 def GetBotInfo():
   name = os.environ.get('BUILDBOT_BUILDERNAME')
+  if not name:
+    print ("BUILDBOT_BUILDERNAME not defined. "
+        "Expected pattern of the form: %s" % PACKAGES_BUILDER)
+    exit(1)
   builder_pattern = re.match(PACKAGES_BUILDER, name)
   if builder_pattern:
     return BotInfo(builder_pattern.group(1),
@@ -117,13 +121,25 @@ def GetPackageCopy(bot_info, tempdir):
   shutil.copytree(package_path, copy_path, symlinks=False)
   return copy_path
 
-def RunPub(path):
+def RunPubUpgrade(path):
   pub = os.path.join(os.getcwd(), 'out', 'ReleaseIA32',
                      'dart-sdk', 'bin', 'pub')
 
   # For now, assume pub
   with ChangedWorkingDirectory(path):
     args = [pub, 'upgrade']
+    RunProcess(args)
+
+def RunPubBuild(path, mode=None):
+  pub = os.path.join(os.getcwd(), 'out', 'ReleaseIA32',
+                     'dart-sdk', 'bin', 'pub')
+
+  # For now, assume pub
+  with ChangedWorkingDirectory(path):
+    args = [pub, 'build']
+    if mode:
+        args.append('--mode=%s' % mode)
+    args.append('test')
     RunProcess(args)
 
 # Major hack
@@ -178,6 +194,7 @@ if __name__ == '__main__':
   shutil.rmtree(tempdir, ignore_errors=True)
   copy_path = GetPackageCopy(bot_info, tempdir)
   print 'Running testing in copy of package in %s' % copy_path
-  RunPub(copy_path)
+  RunPubUpgrade(copy_path)
+  RunPubBuild(copy_path, 'debug')
   FixupTestControllerJS(copy_path)
   RunPackageTesting(bot_info, copy_path)
