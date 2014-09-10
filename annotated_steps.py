@@ -122,25 +122,25 @@ def GetPackageCopy(bot_info, tempdir):
   return copy_path
 
 def RunPubUpgrade(path):
-  pub = os.path.join(os.getcwd(), 'out', 'ReleaseIA32',
-                     'dart-sdk', 'bin', 'pub')
-
-  # For now, assume pub
-  with ChangedWorkingDirectory(path):
-    args = [pub, 'upgrade']
-    RunProcess(args)
+  with BuildStep('Pub upgrade'):
+    pub = os.path.join(os.getcwd(), 'out', 'ReleaseIA32',
+                       'dart-sdk', 'bin', 'pub')
+    # For now, assume pub
+    with ChangedWorkingDirectory(path):
+      args = [pub, 'upgrade']
+      RunProcess(args)
 
 def RunPubBuild(path, mode=None):
-  pub = os.path.join(os.getcwd(), 'out', 'ReleaseIA32',
-                     'dart-sdk', 'bin', 'pub')
-
-  # For now, assume pub
-  with ChangedWorkingDirectory(path):
-    args = [pub, 'build']
-    if mode:
-        args.append('--mode=%s' % mode)
-    args.append('test')
-    RunProcess(args)
+  with BuildStep('Pub build'):
+    pub = os.path.join(os.getcwd(), 'out', 'ReleaseIA32',
+                       'dart-sdk', 'bin', 'pub')
+    # For now, assume pub
+    with ChangedWorkingDirectory(path):
+      args = [pub, 'build']
+      if mode:
+          args.append('--mode=%s' % mode)
+      args.append('test')
+      RunProcess(args)
 
 # Major hack
 def FixupTestControllerJS(package_path):
