@@ -133,8 +133,12 @@ def RunPubUpgrade(path):
       args = [pub, 'upgrade']
       RunProcess(args)
 
-def RunPubBuild(path, mode=None):
+def RunPubBuild(bot_info, path, mode=None):
+  skip_pub_build = ['dart-protobuf']
   with BuildStep('Pub build'):
+    if bot_info.package_name in skip_pub_build:
+      print "Not running pub build"
+      return
     pub = GetPub()
     with ChangedWorkingDirectory(path):
       if os.path.exists('test'):
@@ -146,14 +150,16 @@ def RunPubBuild(path, mode=None):
 
 # Major hack
 def FixupTestControllerJS(package_path):
-  test_controller = os.path.join(package_path, 'packages', 'unittest',
-                                 'test_controller.js')
-  dart_controller = os.path.join('tools', 'testing', 'dart',
-                                 'test_controller.js')
-  print 'Hack test controller by copying of  %s to %s' % (dart_controller,
-                                                          test_controller)
-  shutil.copy(dart_controller, test_controller)
-
+  if os.path.exists(package_path, 'packages', 'unittest'):
+    test_controller = os.path.join(package_path, 'packages', 'unittest',
+                                   'test_controller.js')
+    dart_controller = os.path.join('tools', 'testing', 'dart',
+                                   'test_controller.js')
+    print 'Hack test controller by copying of  %s to %s' % (dart_controller,
+                                                            test_controller)
+    shutil.copy(dart_controller, test_controller)
+  else:
+    print "No unittest to patch, do you even have tests"
 
 def RunPackageTesting(bot_info, package_path):
   package_root = os.path.join(package_path, 'packages')
@@ -201,6 +207,6 @@ if __name__ == '__main__':
   copy_path = GetPackageCopy(bot_info, tempdir)
   print 'Running testing in copy of package in %s' % copy_path
   RunPubUpgrade(copy_path)
-  RunPubBuild(copy_path, 'debug')
+  RunPubBuild(bot_info, copy_path, 'debug')
   FixupTestControllerJS(copy_path)
   RunPackageTesting(bot_info, copy_path)
