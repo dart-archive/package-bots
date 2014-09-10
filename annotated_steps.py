@@ -121,10 +121,13 @@ def GetPackageCopy(bot_info, tempdir):
   shutil.copytree(package_path, copy_path, symlinks=False)
   return copy_path
 
+def GetPub():
+  return os.path.join(os.getcwd(), 'out', 'ReleaseIA32',
+                      'dart-sdk', 'bin', 'pub')
+
 def RunPubUpgrade(path):
+  pub = GetPub()
   with BuildStep('Pub upgrade'):
-    pub = os.path.join(os.getcwd(), 'out', 'ReleaseIA32',
-                       'dart-sdk', 'bin', 'pub')
     # For now, assume pub
     with ChangedWorkingDirectory(path):
       args = [pub, 'upgrade']
@@ -132,15 +135,14 @@ def RunPubUpgrade(path):
 
 def RunPubBuild(path, mode=None):
   with BuildStep('Pub build'):
-    pub = os.path.join(os.getcwd(), 'out', 'ReleaseIA32',
-                       'dart-sdk', 'bin', 'pub')
-    # For now, assume pub
+    pub = GetPub()
     with ChangedWorkingDirectory(path):
-      args = [pub, 'build']
-      if mode:
-          args.append('--mode=%s' % mode)
-      args.append('test')
-      RunProcess(args)
+      if os.path.exists('test'):
+        args = [pub, 'build']
+        if mode:
+            args.append('--mode=%s' % mode)
+        args.append('test')
+        RunProcess(args)
 
 # Major hack
 def FixupTestControllerJS(package_path):
@@ -159,6 +161,7 @@ def RunPackageTesting(bot_info, package_path):
                    '--use-sdk', '--report', '--progress=buildbot',
                    '--clear_browser_cache',
                    '--package-root=%s' % package_root]
+  xvfb_args = ['xvfb-run', '-a', '--server-args=-screen 0 1024x768x24']
 
   with BuildStep('Test vm release mode', swallow_error=True):
     args = [sys.executable, 'tools/test.py',
@@ -169,19 +172,22 @@ def RunPackageTesting(bot_info, package_path):
             '-mrelease', '-rvm', '-cnone'] + standard_args
     RunProcess(args)
   with BuildStep('Test dartium', swallow_error=True):
-    args = [sys.executable, 'tools/test.py',
-            '-mrelease', '-rdartium', '-cnone'] + standard_args
+    test_args = [sys.executable, 'tools/test.py', 
+                 '-mrelease', '-rdartium', '-cnone', '-j4']
+    args = xvfb_args + test_args + standard_args
     RunProcess(args)
-
 
   # TODO(ricow): add mac/windows and generalize to top level list
   runtimes = ['d8', 'jsshell', 'ff', 'drt']
+  needs_x = ['ff', 'drt']
 
   for runtime in runtimes:
     with BuildStep('dart2js-%s' % runtime, swallow_error=True):
-      args = [sys.executable, 'tools/test.py',
-              '-mrelease', '-r%s' % runtime, '-cdart2js', '-j1',
-              '--dart2js-batch'] + standard_args
+      xvfb = xvfb_args if runtime in needs_x else []
+      test_args = [sys.executable, 'tools/test.py',
+                   '-mrelease', '-r%s' % runtime, '-cdart2js', '-j4',
+                   '--dart2js-batch']
+      args = xvfb + test_args + standard_args
       RunProcess(args)
 
 
