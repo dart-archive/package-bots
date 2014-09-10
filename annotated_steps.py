@@ -150,7 +150,7 @@ def RunPubBuild(bot_info, path, mode=None):
 
 # Major hack
 def FixupTestControllerJS(package_path):
-  if os.path.exists(package_path, 'packages', 'unittest'):
+  if os.path.exists(os.path.join(package_path, 'packages', 'unittest')):
     test_controller = os.path.join(package_path, 'packages', 'unittest',
                                    'test_controller.js')
     dart_controller = os.path.join('tools', 'testing', 'dart',
