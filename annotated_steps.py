@@ -108,7 +108,7 @@ def RunProcess(command):
 def BuildSDK(bot_info):
   with BuildStep('Build sdk'):
     args = [sys.executable, 'tools/build.py',
-            '-mrelease',
+            '-mrelease,debug',
             'create_sdk']
     RunProcess(args)
 
@@ -175,7 +175,7 @@ def RunPackageTesting(bot_info, package_path):
     RunProcess(args)
   with BuildStep('Test vm debug mode', swallow_error=True):
     args = [sys.executable, 'tools/test.py',
-            '-mrelease', '-rvm', '-cnone'] + standard_args
+            '-mdebug', '-rvm', '-cnone'] + standard_args
     RunProcess(args)
   with BuildStep('Test dartium', swallow_error=True):
     test_args = [sys.executable, 'tools/test.py', 
