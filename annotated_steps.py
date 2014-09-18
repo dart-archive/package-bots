@@ -13,7 +13,7 @@ import tempfile
 
 # We are deliberately not using bot utils from the dart repo.
 
-PACKAGES_BUILDER = r'packages-(windows|linux|mac)-(.*)'
+PACKAGES_BUILDER = r'packages-(windows|linux|mac)(-repo)?(-sample)?-(.*)'
 
 class BotInfo(object):
   """
@@ -21,12 +21,15 @@ class BotInfo(object):
   - system: windows, linux, mac
   - package-name
   """
-  def __init__(self, system, package_name):
+  def __init__(self, system, package_name, is_repo, is_sample):
       self.system = system
       self.package_name = package_name
+      self.is_repo = is_repo
+      self.is_sample = is_sample
 
   def __str__(self):
-    return "System: %s, Package-name: %s" % (self.system, self.package_name)
+    return "System: %s, Package-name: %s, Repo: %s, Sample: %s" % (
+      self.system, self.package_name, self.is_repo, self.is_sample)
 
 def GetBotInfo():
   name = os.environ.get('BUILDBOT_BUILDERNAME')
@@ -36,8 +39,12 @@ def GetBotInfo():
     exit(1)
   builder_pattern = re.match(PACKAGES_BUILDER, name)
   if builder_pattern:
+    is_repo = builder_pattern.group(2) is not None
+    is_sample = builder_pattern.group(3) is not None
     return BotInfo(builder_pattern.group(1),
-                   builder_pattern.group(2))
+                   builder_pattern.group(4),
+                   is_repo,
+                   is_sample)
 
 class BuildStep(object):
   """
@@ -113,6 +120,15 @@ def BuildSDK(bot_info):
     RunProcess(args)
 
 def GetPackagePath(bot_info):
+  if bot_info.is_sample:
+    if bot_info.is_repo:
+      third_party = ['angular_tests', 'di_tests', 'html5lib']
+      if bot_info.package_name in third_party:
+        return os.path.join('samples', 'third_party', bot_info.package_name)
+      return os.path.join('samples', bot_info.package_name)
+    return os.path.join('third_party', 'samples', bot_info.package_name)
+  if bot_info.is_repo:
+    return os.path.join('pkg', bot_info.package_name)
   return os.path.join('third_party', 'pkg', bot_info.package_name)
 
 def GetPackageCopy(bot_info, tempdir):
