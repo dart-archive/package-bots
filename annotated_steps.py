@@ -200,8 +200,9 @@ def RunPackageTesting(bot_info, package_path):
     RunProcess(args)
 
   # TODO(ricow): add mac/windows and generalize to top level list
-  runtimes = ['d8', 'jsshell', 'ff', 'chrome']
-  needs_x = ['ff', 'chrome']
+  # TODO(ricow/sigmund): add chrome, drt
+  runtimes = ['d8', 'jsshell', 'ff']
+  needs_x = ['ff', 'drt', 'chrome']
 
   for runtime in runtimes:
     with BuildStep('dart2js-%s' % runtime, swallow_error=True):
