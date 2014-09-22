@@ -150,7 +150,7 @@ def GetPackageCopy(bot_info):
   package_path = GetPackagePath(bot_info)
   copy_path = os.path.join(package_copy, bot_info.package_name)
   # Clean out old copy
-  shutil.rmtree(package_copy, ignore_errors=True)
+  shutil.rmtree(package_copy)
   shutil.copytree(package_path, copy_path, symlinks=False)
   return copy_path
 
