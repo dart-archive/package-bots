@@ -159,7 +159,7 @@ def GetPackageCopy(bot_info):
 def GetPub(bot_info):
   executable = 'pub.bat' if bot_info.system == 'windows' else 'pub'
   return os.path.join(os.getcwd(), GetBuildRoot(bot_info),
-                      'dart-sdk', 'bin', 'pub')
+                      'dart-sdk', 'bin', executable)
 
 def RunPubUpgrade(bot_info, path):
   pub = GetPub(bot_info)
