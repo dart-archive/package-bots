@@ -4,12 +4,20 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import imp
 import os
 import re
 import shutil
 import subprocess
 import sys
 import tempfile
+
+
+# TODO(ricow): Remove this when we start downloading the sdk - we then don't
+# need this.
+DART_DIR = os.path.abspath(
+    os.path.normpath(os.path.join(__file__, '..', '..', '..')))
+utils = imp.load_source('utils', os.path.join(DART_DIR, 'tools', 'utils.py'))
 
 # We are deliberately not using bot utils from the dart repo.
 
@@ -131,9 +139,17 @@ def GetPackagePath(bot_info):
     return os.path.join('pkg', bot_info.package_name)
   return os.path.join('third_party', 'pkg', bot_info.package_name)
 
-def GetPackageCopy(bot_info, tempdir):
+def GetBuildRoot(bot_info):
+  system = bot_info.system
+  return utils.GetBuildRoot('win32' if system == 'windows' else system)
+
+def GetPackageCopy(bot_info):
+  package_copy = os.path.join(build_root, 'package_copy')
+  build_root = GetBuildRoot(bot_info)
   package_path = GetPackagePath(bot_info)
-  copy_path = os.path.join(tempdir, bot_info.package_name)
+  copy_path = os.path.join(package_copy, bot_info.package_name)
+  # Clean out old copy
+  shutil.rmtree(package_copy, ignore_errors=True)
   shutil.copytree(package_path, copy_path, symlinks=False)
   return copy_path
 
@@ -177,6 +193,12 @@ def FixupTestControllerJS(package_path):
   else:
     print "No unittest to patch, do you even have tests"
 
+JS_RUNTIMES = {
+  'windows': ['d8', 'jsshell', 'ff', 'chrome', 'ie10'],
+  'linux': ['d8', 'jsshell', 'ff', 'chrome'],
+  'mac': ['d8', 'jsshell', 'safari', 'chrome'],
+}
+
 def RunPackageTesting(bot_info, package_path):
   package_root = os.path.join(package_path, 'packages')
   standard_args = ['--suite-dir=%s' % package_path,
@@ -184,7 +206,7 @@ def RunPackageTesting(bot_info, package_path):
                    '--clear_browser_cache',
                    '--package-root=%s' % package_root]
   xvfb_args = ['xvfb-run', '-a', '--server-args=-screen 0 1024x768x24']
-
+  system = bot_info.system
   with BuildStep('Test vm release mode', swallow_error=True):
     args = [sys.executable, 'tools/test.py',
             '-mrelease', '-rvm', '-cnone'] + standard_args
@@ -199,29 +221,23 @@ def RunPackageTesting(bot_info, package_path):
     args = xvfb_args + test_args + standard_args
     RunProcess(args)
 
-  # TODO(ricow): add mac/windows and generalize to top level list
-  # TODO(ricow/sigmund): add chrome, drt
-  runtimes = ['d8', 'jsshell', 'ff']
+  # TODO(ricow/sigmund): add  drt
   needs_x = ['ff', 'drt', 'chrome']
 
-  for runtime in runtimes:
+  for runtime in JS_RUNTIMES[system]:
     with BuildStep('dart2js-%s' % runtime, swallow_error=True):
-      xvfb = xvfb_args if runtime in needs_x else []
+      xvfb = xvfb_args if runtime in needs_x and system == 'linux' else []
       test_args = [sys.executable, 'tools/test.py',
                    '-mrelease', '-r%s' % runtime, '-cdart2js', '-j4',
                    '--dart2js-batch']
       args = xvfb + test_args + standard_args
       RunProcess(args)
 
-
 if __name__ == '__main__':
   bot_info = GetBotInfo()
   print 'Bot info: %s' % bot_info
   BuildSDK(bot_info)
-  # TODO(ricow): generalize
-  tempdir = os.path.join('out', 'ReleaseIA32', 'package_copy')
-  shutil.rmtree(tempdir, ignore_errors=True)
-  copy_path = GetPackageCopy(bot_info, tempdir)
+  copy_path = GetPackageCopy(bot_info)
   print 'Running testing in copy of package in %s' % copy_path
   RunPubUpgrade(copy_path)
   RunPubBuild(bot_info, copy_path, 'debug')
