@@ -140,8 +140,9 @@ def GetPackagePath(bot_info):
   return os.path.join('third_party', 'pkg', bot_info.package_name)
 
 def GetBuildRoot(bot_info):
-  system = bot_info.system
-  return utils.GetBuildRoot('win32' if system == 'windows' else system)
+  system = 'win32' if bot_info.system == 'windows' else bot_info.system
+  return utils.GetBuildRoot(system, mode='release', arch='ia32',
+                            target_os=system)
 
 def GetPackageCopy(bot_info):
   build_root = GetBuildRoot(bot_info)
@@ -153,12 +154,12 @@ def GetPackageCopy(bot_info):
   shutil.copytree(package_path, copy_path, symlinks=False)
   return copy_path
 
-def GetPub():
-  return os.path.join(os.getcwd(), 'out', 'ReleaseIA32',
+def GetPub(bot_info):
+  return os.path.join(os.getcwd(), GetBuildRoot(bot_info),
                       'dart-sdk', 'bin', 'pub')
 
-def RunPubUpgrade(path):
-  pub = GetPub()
+def RunPubUpgrade(bot_info, path):
+  pub = GetPub(bot_info)
   with BuildStep('Pub upgrade'):
     # For now, assume pub
     with ChangedWorkingDirectory(path):
@@ -239,7 +240,7 @@ if __name__ == '__main__':
   BuildSDK(bot_info)
   copy_path = GetPackageCopy(bot_info)
   print 'Running testing in copy of package in %s' % copy_path
-  RunPubUpgrade(copy_path)
+  RunPubUpgrade(bot_info, copy_path)
   RunPubBuild(bot_info, copy_path, 'debug')
   FixupTestControllerJS(copy_path)
   RunPackageTesting(bot_info, copy_path)
