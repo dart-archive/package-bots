@@ -141,7 +141,8 @@ def GetPackagePath(bot_info):
 
 def GetBuildRoot(bot_info):
   system = 'win32' if bot_info.system == 'windows' else bot_info.system
-  return utils.GetBuildRoot(system, mode='release', arch='ia32',
+  arch = 'x64' if bot_info.system == 'windows' else 'ia32'
+  return utils.GetBuildRoot(system, mode='release', arch=arch,
                             target_os=system)
 
 def GetPackageCopy(bot_info):
@@ -156,6 +157,7 @@ def GetPackageCopy(bot_info):
   return copy_path
 
 def GetPub(bot_info):
+  executable = 'pub.bat' if bot_info.system == 'windows' else 'pub'
   return os.path.join(os.getcwd(), GetBuildRoot(bot_info),
                       'dart-sdk', 'bin', 'pub')
 
