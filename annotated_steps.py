@@ -144,8 +144,8 @@ def GetBuildRoot(bot_info):
   return utils.GetBuildRoot('win32' if system == 'windows' else system)
 
 def GetPackageCopy(bot_info):
-  package_copy = os.path.join(build_root, 'package_copy')
   build_root = GetBuildRoot(bot_info)
+  package_copy = os.path.join(build_root, 'package_copy')
   package_path = GetPackagePath(bot_info)
   copy_path = os.path.join(package_copy, bot_info.package_name)
   # Clean out old copy
