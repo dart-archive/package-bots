@@ -172,7 +172,7 @@ def RunPubBuild(bot_info, path, mode=None):
     if bot_info.package_name in skip_pub_build:
       print "Not running pub build"
       return
-    pub = GetPub()
+    pub = GetPub(bot_info)
     with ChangedWorkingDirectory(path):
       if os.path.exists('test'):
         args = [pub, 'build']
