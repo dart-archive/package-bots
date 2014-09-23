@@ -209,8 +209,9 @@ def RunPackageTesting(bot_info, package_path):
                    '--use-sdk', '--report', '--progress=buildbot',
                    '--clear_browser_cache',
                    '--package-root=%s' % package_root]
-  xvfb_args = ['xvfb-run', '-a', '--server-args=-screen 0 1024x768x24']
   system = bot_info.system
+  xvfb_command = ['xvfb-run', '-a', '--server-args=-screen 0 1024x768x24']
+  xvfb_args =  xvfb_command if system == 'linux' else []
   with BuildStep('Test vm release mode', swallow_error=True):
     args = [sys.executable, 'tools/test.py',
             '-mrelease', '-rvm', '-cnone'] + standard_args
@@ -225,12 +226,8 @@ def RunPackageTesting(bot_info, package_path):
     args = xvfb_args + test_args + standard_args
     RunProcess(args)
 
-  # TODO(ricow/sigmund): add  drt
-  needs_x = ['ff', 'drt', 'chrome']
-
   for runtime in JS_RUNTIMES[system]:
     with BuildStep('dart2js-%s' % runtime, swallow_error=True):
-      xvfb = xvfb_args if runtime in needs_x and system == 'linux' else []
       test_args = [sys.executable, 'tools/test.py',
                    '-mrelease', '-r%s' % runtime, '-cdart2js', '-j4',
                    '--dart2js-batch']
