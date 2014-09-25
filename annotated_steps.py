@@ -231,7 +231,7 @@ def RunPackageTesting(bot_info, package_path):
       test_args = [sys.executable, 'tools/test.py',
                    '-mrelease', '-r%s' % runtime, '-cdart2js', '-j4',
                    '--dart2js-batch']
-      args = xvfb + test_args + standard_args
+      args = xvfb_args + test_args + standard_args
       RunProcess(args)
 
 if __name__ == '__main__':
