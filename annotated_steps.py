@@ -123,7 +123,7 @@ def RunProcess(command):
 def BuildSDK(bot_info):
   with BuildStep('Build sdk'):
     args = [sys.executable, 'tools/build.py',
-            '-mrelease,debug',
+            '-mrelease,debug', '-arch=ia32',
             'create_sdk']
     RunProcess(args)
 
@@ -141,8 +141,7 @@ def GetPackagePath(bot_info):
 
 def GetBuildRoot(bot_info):
   system = 'win32' if bot_info.system == 'windows' else bot_info.system
-  arch = 'x64' if bot_info.system == 'windows' else 'ia32'
-  return utils.GetBuildRoot(system, mode='release', arch=arch,
+  return utils.GetBuildRoot(system, mode='release', arch='ia32',
                             target_os=system)
 
 def GetPackageCopy(bot_info):
