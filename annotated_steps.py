@@ -123,7 +123,7 @@ def RunProcess(command):
 def BuildSDK(bot_info):
   with BuildStep('Build sdk'):
     args = [sys.executable, 'tools/build.py',
-            '-mrelease,debug', '-arch=ia32',
+            '-mrelease,debug', '--arch=ia32',
             'create_sdk']
     RunProcess(args)
 
