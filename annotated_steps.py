@@ -208,8 +208,7 @@ def RunPackageTesting(bot_info, package_path):
                    '--use-sdk', '--report', '--progress=buildbot',
                    '--clear_browser_cache',
                    '--package-root=%s' % package_root,
-                   '--write-debug-log',
-                   '--clear_browser_cache']
+                   '--write-debug-log']
   system = bot_info.system
   xvfb_command = ['xvfb-run', '-a', '--server-args=-screen 0 1024x768x24']
   xvfb_args =  xvfb_command if system == 'linux' else []
