@@ -21,7 +21,7 @@ utils = imp.load_source('utils', os.path.join(DART_DIR, 'tools', 'utils.py'))
 
 # We are deliberately not using bot utils from the dart repo.
 
-PACKAGES_BUILDER = r'packages-(windows|linux|mac)-(.*)(-repo)?(-sample)?'
+PACKAGES_BUILDER = r'packages-(windows|linux|mac)(-repo)?(-sample)?-(.*)'
 
 class BotInfo(object):
   """
