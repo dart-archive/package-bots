@@ -170,11 +170,12 @@ def GetPubEnv(bot_info):
 
 def RunPubUpgrade(bot_info, path):
   pub = GetPub(bot_info)
+  extra_env = GetPubEnv(bot_info)
   with BuildStep('Pub upgrade'):
     # For now, assume pub
     with ChangedWorkingDirectory(path):
       args = [pub, 'upgrade']
-      RunProcess(args, extra_env=GetPubEnv(bot_info))
+      RunProcess(args, extra_env=extra_env)
 
 def RunPubBuild(bot_info, path, mode=None):
   skip_pub_build = ['dart-protobuf']
@@ -183,13 +184,14 @@ def RunPubBuild(bot_info, path, mode=None):
       print "Not running pub build"
       return
     pub = GetPub(bot_info)
+    extra_env = GetPubEnv(bot_info)
     with ChangedWorkingDirectory(path):
       if os.path.exists('test'):
         args = [pub, 'build']
         if mode:
             args.append('--mode=%s' % mode)
         args.append('test')
-        RunProcess(args, extra_env=GetPubEnv(bot_info))
+        RunProcess(args, extra_env=extra_env)
 
 # Major hack
 def FixupTestControllerJS(package_path):
