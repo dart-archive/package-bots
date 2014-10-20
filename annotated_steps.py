@@ -164,7 +164,8 @@ def GetPub(bot_info):
 
 def GetPubEnv(bot_info):
   if bot_info.system == 'windows':
-    return {'PUB_CACHE' : os.path.join(GetBuildRoot(bot_info), 'pub_cache') }
+    return {'PUB_CACHE' : os.path.join(os.getcwd(),
+                                       GetBuildRoot(bot_info), 'pub_cache') }
   else:
     return None
 
