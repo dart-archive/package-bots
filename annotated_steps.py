@@ -105,18 +105,20 @@ class ChangedWorkingDirectory(object):
     print "Enter directory = ", self._old_cwd
     os.chdir(self._old_cwd)
 
-def RunProcess(command):
+def RunProcess(command, extra_env=None):
   """
   Runs command.
 
   If a non-zero exit code is returned, raises an OSError with errno as the exit
   code.
   """
-  no_color_env = dict(os.environ)
-  no_color_env['TERM'] = 'nocolor'
+  env = dict(os.environ)
+  env['TERM'] = 'nocolor'
+  if extra_env:
+    env.update(extra_env)
   print "Running: %s" % ' '.join(command)
   sys.stdout.flush()
-  exit_code = subprocess.call(command, env=no_color_env)
+  exit_code = subprocess.call(command, env=env)
   if exit_code != 0:
     raise OSError(exit_code)
 
@@ -160,13 +162,19 @@ def GetPub(bot_info):
   return os.path.join(os.getcwd(), GetBuildRoot(bot_info),
                       'dart-sdk', 'bin', executable)
 
+def GetPubEnv(bot_info):
+  if bot_info.system == 'windows':
+    return {'PUB_CACHE' : os.path.join(GetBuildRoot(bot_info), 'pub_cache') }
+  else:
+    return None
+
 def RunPubUpgrade(bot_info, path):
   pub = GetPub(bot_info)
   with BuildStep('Pub upgrade'):
     # For now, assume pub
     with ChangedWorkingDirectory(path):
       args = [pub, 'upgrade']
-      RunProcess(args)
+      RunProcess(args, extra_env=GetPubEnv(bot_info))
 
 def RunPubBuild(bot_info, path, mode=None):
   skip_pub_build = ['dart-protobuf']
@@ -181,7 +189,7 @@ def RunPubBuild(bot_info, path, mode=None):
         if mode:
             args.append('--mode=%s' % mode)
         args.append('test')
-        RunProcess(args)
+        RunProcess(args, extra_env=GetPubEnv(bot_info))
 
 # Major hack
 def FixupTestControllerJS(package_path):
