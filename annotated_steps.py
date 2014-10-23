@@ -133,7 +133,8 @@ def BuildSDK(bot_info):
 def GetPackagePath(bot_info):
   if bot_info.is_sample:
     if bot_info.is_repo:
-      third_party = ['angular_tests', 'di_tests', 'html5lib']
+      third_party = ['todomvc', 'angular_todo', 'todomvc_performance',
+                     'dromaeo']
       if bot_info.package_name in third_party:
         return os.path.join('samples', 'third_party', bot_info.package_name)
       return os.path.join('samples', bot_info.package_name)
