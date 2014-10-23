@@ -12,6 +12,7 @@ import subprocess
 import sys
 import tempfile
 
+import config_parser
 
 # TODO(ricow): Remove this when we start downloading the sdk - we then don't
 # need this.
@@ -105,7 +106,7 @@ class ChangedWorkingDirectory(object):
     print "Enter directory = ", self._old_cwd
     os.chdir(self._old_cwd)
 
-def RunProcess(command, extra_env=None):
+def RunProcess(command, shell=False, extra_env=None):
   """
   Runs command.
 
@@ -118,7 +119,7 @@ def RunProcess(command, extra_env=None):
     env.update(extra_env)
   print "Running: %s" % ' '.join(command)
   sys.stdout.flush()
-  exit_code = subprocess.call(command, env=env)
+  exit_code = subprocess.call(command, env=env, shell=shell)
   if exit_code != 0:
     raise OSError(exit_code)
 
@@ -157,10 +158,16 @@ def GetPackageCopy(bot_info):
   shutil.copytree(package_path, copy_path, symlinks=False, ignore=no_git)
   return copy_path
 
+def GetSdkBin():
+  return os.path.join(os.getcwd(), GetBuildRoot(bot_info), 'dart-sdk', 'bin')
+
+def GetVM():
+  executable = 'dart.exe' if bot_info.system == 'windows' else 'dart'
+  return os.path.join(GetSdkBin(), executable)
+
 def GetPub(bot_info):
   executable = 'pub.bat' if bot_info.system == 'windows' else 'pub'
-  return os.path.join(os.getcwd(), GetBuildRoot(bot_info),
-                      'dart-sdk', 'bin', executable)
+  return os.path.join(GetSdkBin(), executable)
 
 def GetPubEnv(bot_info):
   if bot_info.system == 'windows':
@@ -232,7 +239,7 @@ def RunPackageTesting(bot_info, package_path):
             '-mdebug', '-rvm', '-cnone'] + standard_args
     RunProcess(args)
   with BuildStep('Test dartium', swallow_error=True):
-    test_args = [sys.executable, 'tools/test.py', 
+    test_args = [sys.executable, 'tools/test.py',
                  '-mrelease', '-rdartium', '-cnone', '-j4']
     args = xvfb_args + test_args + standard_args
     RunProcess(args)
@@ -245,13 +252,43 @@ def RunPackageTesting(bot_info, package_path):
       args = xvfb_args + test_args + standard_args
       RunProcess(args)
 
+
+def RunHooks(hooks, section_name):
+  for name, command in hooks.iteritems():
+    with BuildStep('%s: %s' % (section_name, name), swallow_error=True):
+      RunProcess(command, shell=True)
+
+def RunPrePubUpgradeHooks(test_config):
+  RunHooks(test_config.get_pre_pub_upgrade_hooks(), "Pre pub upgrade hooks")
+
+def RunPrePubBuildHooks(test_config):
+  RunHooks(test_config.get_pre_pub_build_hooks(), "Pre pub build hooks")
+
+def RunPreTestHooks(test_config):
+  RunHooks(test_config.get_pre_test_hooks(), "Pre test hooks")
+
+def RunPostTestHooks(test_config):
+  RunHooks(test_config.get_post_test_hooks(), "Post test hooks")
+
 if __name__ == '__main__':
   bot_info = GetBotInfo()
   print 'Bot info: %s' % bot_info
-  BuildSDK(bot_info)
   copy_path = GetPackageCopy(bot_info)
+  config_file = os.path.join(copy_path, '.test_config')
+  test_config = config_parser.ConfigParser(config_file,
+                                           GetVM(),
+                                           copy_path)
+
+  BuildSDK(bot_info)
+
   print 'Running testing in copy of package in %s' % copy_path
+  RunPrePubUpgradeHooks(test_config)
   RunPubUpgrade(bot_info, copy_path)
+
+  RunPrePubBuildHooks(test_config)
   RunPubBuild(bot_info, copy_path, 'debug')
   FixupTestControllerJS(copy_path)
+
+  RunPreTestHooks(test_config)
   RunPackageTesting(bot_info, copy_path)
+  RunPostTestHooks(test_config)
