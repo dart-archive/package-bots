@@ -118,6 +118,7 @@ def RunProcess(command, shell=False, extra_env=None):
   if extra_env:
     env.update(extra_env)
   print "Running: %s" % ' '.join(command)
+  print "env: %s" % str(env)
   sys.stdout.flush()
   exit_code = subprocess.call(command, env=env, shell=shell)
   if exit_code != 0:
