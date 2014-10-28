@@ -178,6 +178,16 @@ def GetPubEnv(bot_info):
   else:
     return None
 
+# Not used normally, but included to easily fix up the bots, if needed.
+def RunPubCacheRepair(bot_info, path):
+  pub = GetPub(bot_info)
+  extra_env = GetPubEnv(bot_info)
+  with BuildStep('Pub cache repair'):
+    # For now, assume pub
+    with ChangedWorkingDirectory(path):
+      args = [pub, 'cache', 'repair']
+      RunProcess(args, extra_env=extra_env)
+
 def RunPubUpgrade(bot_info, path):
   pub = GetPub(bot_info)
   extra_env = GetPubEnv(bot_info)
@@ -285,6 +295,7 @@ if __name__ == '__main__':
 
   print 'Running testing in copy of package in %s' % copy_path
   RunPrePubUpgradeHooks(test_config)
+  RunPubCacheRepair(bot_info, copy_path)
   RunPubUpgrade(bot_info, copy_path)
 
   RunPrePubBuildHooks(test_config)
