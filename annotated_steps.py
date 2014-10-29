@@ -316,6 +316,8 @@ if __name__ == '__main__':
 
   print 'Running testing in copy of package in %s' % copy_path
   CheckPubCacheCorruption(bot_info, copy_path)
+  RunPubCacheRepair(bot_info, copy_path)
+  CheckPubCacheCorruption(bot_info, copy_path)
   RunPrePubUpgradeHooks(test_config)
   CheckPubCacheCorruption(bot_info, copy_path)
   RunPubUpgrade(bot_info, copy_path)
