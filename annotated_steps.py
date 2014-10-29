@@ -190,9 +190,11 @@ def RunPubCacheRepair(bot_info, path):
       args = [pub, 'cache', 'repair']
       RunProcess(args, extra_env=extra_env)
 
+corruption_checks = 0
 def CheckPubCacheCorruption(bot_info, path):
   extra_env = GetPubEnv(bot_info)
-  with BuildStep('Check pub cache corruption'):
+  corruption_checks += 1
+  with BuildStep('Check pub cache corruption %d' % corruption_checks):
     with ChangedWorkingDirectory(path):
       packages = os.path.join(
         extra_env['PUB_CACHE'], 'hosted', 'pub.dartlang.org')
