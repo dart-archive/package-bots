@@ -202,9 +202,9 @@ def CheckPubCacheCorruption(bot_info, path):
         return
       for package in os.listdir(packages):
         if 'unittest-' in package:
-          isfile = os.path.isfile(
+          exists = os.path.exists(
                   os.path.join(packages, package, 'lib', 'unittest.dart'))
-          print '- ok:  ' if isfile else '- bad: ',
+          print '- ok:  ' if exists else '- bad: ',
           print os.path.join(package, 'lib', 'unittest.dart')
       print ''
 
