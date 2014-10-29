@@ -193,6 +193,7 @@ def RunPubCacheRepair(bot_info, path):
 corruption_checks = 0
 def CheckPubCacheCorruption(bot_info, path):
   extra_env = GetPubEnv(bot_info)
+  global corruption_checks
   corruption_checks += 1
   with BuildStep('Check pub cache corruption %d' % corruption_checks):
     with ChangedWorkingDirectory(path):
