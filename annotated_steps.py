@@ -18,10 +18,15 @@ import config_parser
 # need this.
 DART_DIR = os.path.abspath(
     os.path.normpath(os.path.join(__file__, '..', '..', '..')))
-utils = imp.load_source('utils', os.path.join(DART_DIR, 'tools', 'utils.py'))
+UTILS_PATH = os.path.join(DART_DIR, 'tools', 'utils.py')
+if os.path.isfile(UTILS_PATH):
+  utils = imp.load_source('utils', UTILS_PATH)
+else:
+  print 'error: %s not found' % UTILS_PATH
+  exit(1)
+
 
 # We are deliberately not using bot utils from the dart repo.
-
 PACKAGES_BUILDER = r'packages-(windows|linux|mac)(-repo)?(-sample)?-(.*)'
 
 class BotInfo(object):
@@ -188,6 +193,21 @@ def RunPubCacheRepair(bot_info, path):
       args = [pub, 'cache', 'repair']
       RunProcess(args, extra_env=extra_env)
 
+def CheckPubCacheCorruption(bot_info, path):
+  extra_env = GetPubEnv(bot_info)
+  with BuildStep('Check pub cache corruption'):
+    with ChangedWorkingDirectory(path):
+      packages = os.path.join(
+        extra_env['PUB_CACHE'], 'hosted', 'pub.dartlang.org')
+      print '\nLooking for packages in %s:' % str(packages)
+      for package in os.listdir(packages):
+        if 'unittest-' in package:
+          isfile = os.path.isfile(
+                  os.path.join(packages, package, 'lib', 'unittest.dart'))
+          print '- ok:  ' if isfile else '- bad: ',
+          print os.path.join(package, 'lib', 'unittest.dart')
+      print ''
+
 def RunPubUpgrade(bot_info, path):
   pub = GetPub(bot_info)
   extra_env = GetPubEnv(bot_info)
@@ -291,16 +311,26 @@ if __name__ == '__main__':
                                            GetVM(),
                                            copy_path)
 
+  CheckPubCacheCorruption(bot_info, copy_path)
   BuildSDK(bot_info)
 
   print 'Running testing in copy of package in %s' % copy_path
+  CheckPubCacheCorruption(bot_info, copy_path)
   RunPrePubUpgradeHooks(test_config)
+  CheckPubCacheCorruption(bot_info, copy_path)
   RunPubUpgrade(bot_info, copy_path)
+  CheckPubCacheCorruption(bot_info, copy_path)
 
   RunPrePubBuildHooks(test_config)
+  CheckPubCacheCorruption(bot_info, copy_path)
   RunPubBuild(bot_info, copy_path, 'debug')
+  CheckPubCacheCorruption(bot_info, copy_path)
   FixupTestControllerJS(copy_path)
+  CheckPubCacheCorruption(bot_info, copy_path)
 
   RunPreTestHooks(test_config)
+  CheckPubCacheCorruption(bot_info, copy_path)
   RunPackageTesting(bot_info, copy_path)
+  CheckPubCacheCorruption(bot_info, copy_path)
   RunPostTestHooks(test_config)
+  CheckPubCacheCorruption(bot_info, copy_path)
