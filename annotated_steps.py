@@ -197,7 +197,7 @@ def CheckPubCacheCorruption(bot_info, path):
       packages = os.path.join(
         extra_env['PUB_CACHE'], 'hosted', 'pub.dartlang.org')
       print '\nLooking for packages in %s:' % str(packages)
-      if not os.path.isdir(packages):
+      if not os.path.exists(packages):
         print "cache directory doesn't exist"
         return
       for package in os.listdir(packages):
