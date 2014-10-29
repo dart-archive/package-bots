@@ -177,11 +177,8 @@ def GetPub(bot_info):
   return os.path.join(GetSdkBin(), executable)
 
 def GetPubEnv(bot_info):
-  if bot_info.system == 'windows':
-    return {'PUB_CACHE' : os.path.join(os.getcwd(),
-                                       GetBuildRoot(bot_info), 'pub_cache') }
-  else:
-    return None
+  return {'PUB_CACHE' : os.path.join(os.getcwd(),
+      GetBuildRoot(bot_info), 'pub_cache') }
 
 # Not used normally, but included to easily fix up the bots, if needed.
 def RunPubCacheRepair(bot_info, path):
