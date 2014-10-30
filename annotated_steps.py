@@ -256,9 +256,9 @@ def FixupTestControllerJS(package_path):
     print "No unittest to patch, do you even have tests"
 
 JS_RUNTIMES = {
-  'windows': ['d8', 'jsshell', 'ff', 'chrome', 'ie10'],
+  'windows': ['ff', 'chrome', 'ie10'],
   'linux': ['d8', 'jsshell', 'ff', 'chrome'],
-  'mac': ['d8', 'jsshell', 'safari', 'chrome'],
+  'mac': ['safari', 'chrome'],
 }
 
 def RunPackageTesting(bot_info, package_path):
