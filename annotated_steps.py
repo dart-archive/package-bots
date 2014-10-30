@@ -184,8 +184,10 @@ def GetPubEnv(bot_info):
   return {'PUB_CACHE' : os.path.join(os.getcwd(),
       GetBuildRoot(bot_info), 'pub_cache') }
 
-# Not used normally, but included to easily fix up the bots, if needed.
-def RunPubCacheRepair(bot_info, path):
+# _RunPubCacheRepair and _CheckPubCacheCorruption are not used right now, but we
+# keep them around because they provide an easy way to diagnose and fix issues
+# in the bots.
+def _RunPubCacheRepair(bot_info, path):
   pub = GetPub(bot_info)
   extra_env = GetPubEnv(bot_info)
   with BuildStep('Pub cache repair'):
@@ -195,7 +197,7 @@ def RunPubCacheRepair(bot_info, path):
       RunProcess(args, extra_env=extra_env)
 
 corruption_checks = 0
-def CheckPubCacheCorruption(bot_info, path):
+def _CheckPubCacheCorruption(bot_info, path):
   extra_env = GetPubEnv(bot_info)
   global corruption_checks
   corruption_checks += 1
@@ -318,28 +320,16 @@ if __name__ == '__main__':
                                            GetVM(),
                                            copy_path)
 
-  CheckPubCacheCorruption(bot_info, copy_path)
   BuildSDK(bot_info)
 
   print 'Running testing in copy of package in %s' % copy_path
-  CheckPubCacheCorruption(bot_info, copy_path)
-  RunPubCacheRepair(bot_info, copy_path)
-  CheckPubCacheCorruption(bot_info, copy_path)
   RunPrePubUpgradeHooks(test_config)
-  CheckPubCacheCorruption(bot_info, copy_path)
   RunPubUpgrade(bot_info, copy_path)
-  CheckPubCacheCorruption(bot_info, copy_path)
 
   RunPrePubBuildHooks(test_config)
-  CheckPubCacheCorruption(bot_info, copy_path)
   RunPubBuild(bot_info, copy_path, 'debug')
-  CheckPubCacheCorruption(bot_info, copy_path)
   FixupTestControllerJS(copy_path)
-  CheckPubCacheCorruption(bot_info, copy_path)
 
   RunPreTestHooks(test_config)
-  CheckPubCacheCorruption(bot_info, copy_path)
   RunPackageTesting(bot_info, copy_path)
-  CheckPubCacheCorruption(bot_info, copy_path)
   RunPostTestHooks(test_config)
-  CheckPubCacheCorruption(bot_info, copy_path)
