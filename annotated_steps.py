@@ -226,20 +226,22 @@ def RunPubUpgrade(bot_info, path):
       args = [pub, 'upgrade']
       RunProcess(args, extra_env=extra_env)
 
-def RunPubBuild(bot_info, path, mode=None):
+def RunPubBuild(bot_info, path, folder, mode=None):
   skip_pub_build = ['dart-protobuf']
-  with BuildStep('Pub build'):
+  with BuildStep('Pub build on %s' % folder):
     if bot_info.package_name in skip_pub_build:
       print "Not running pub build"
       return
     pub = GetPub(bot_info)
     extra_env = GetPubEnv(bot_info)
     with ChangedWorkingDirectory(path):
-      if os.path.exists('test'):
+      # run pub-build on the web folder
+      if os.path.exists(folder):
         args = [pub, 'build']
         if mode:
             args.append('--mode=%s' % mode)
-        args.append('test')
+        if folder != 'web':
+            args.append(folder)
         RunProcess(args, extra_env=extra_env)
 
 # Major hack
@@ -327,7 +329,8 @@ if __name__ == '__main__':
   RunPubUpgrade(bot_info, copy_path)
 
   RunPrePubBuildHooks(test_config)
-  RunPubBuild(bot_info, copy_path, 'debug')
+  RunPubBuild(bot_info, copy_path, 'web')
+  RunPubBuild(bot_info, copy_path, 'test', 'debug')
   FixupTestControllerJS(copy_path)
 
   RunPreTestHooks(test_config)
