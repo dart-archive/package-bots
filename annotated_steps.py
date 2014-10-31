@@ -161,8 +161,9 @@ def GetPackageCopy(bot_info):
   copy_path = os.path.join(package_copy, bot_info.package_name)
   # Clean out old copy
   if bot_info.system == 'windows':
-    args = ['cmd.exe', '/c', 'rmdir', '/q', '/s', package_copy]
-    RunProcess(args)
+    if os.path.exists(package_copy):
+      args = ['cmd.exe', '/c', 'rmdir', '/q', '/s', package_copy]
+      RunProcess(args)
   else:
     shutil.rmtree(package_copy, ignore_errors=True)
   no_git = shutil.ignore_patterns('.git')
