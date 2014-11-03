@@ -11,18 +11,25 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import zipfile
 
 import config_parser
 
-# TODO(ricow): Remove this when we start downloading the sdk - we then don't
-# need this.
+# We expect the tools directory from the dart repo to be checked out into:
+# ../../tools
 DART_DIR = os.path.abspath(
     os.path.normpath(os.path.join(__file__, '..', '..', '..')))
 UTILS_PATH = os.path.join(DART_DIR, 'tools', 'utils.py')
+BOT_UTILS_PATH = os.path.join(DART_DIR, 'tools', 'bots', 'bot_utils.py')
 if os.path.isfile(UTILS_PATH):
   utils = imp.load_source('utils', UTILS_PATH)
 else:
   print 'error: %s not found' % UTILS_PATH
+  exit(1)
+if os.path.isfile(BOT_UTILS_PATH):
+  bot_utils = imp.load_source('bot_utils', BOT_UTILS_PATH)
+else:
+  print 'error: %s not found' % BOT_UTILS_PATH
   exit(1)
 
 
@@ -136,6 +143,27 @@ def BuildSDK(bot_info):
             'create_sdk']
     RunProcess(args)
 
+def GetSDK(bot_info):
+  with BuildStep('Get sdk'):
+    namer = bot_utils.GCSNamer(channel=bot_utils.Channel.DEV)
+    sdk_download = os.path.join(GetBuildRoot(bot_info), 'sdk-down')
+    # TODO(ricow): Be smarter here, only download if new.
+    SafeDelete(sdk_download)
+    if not os.path.exists(sdk_download):
+      os.makedirs(sdk_download)
+    local_zip = os.path.join(sdk_download, 'sdk.zip')
+    gsutils = bot_utils.GSUtil()
+    gsutils.execute(['cp',
+                    namer.sdk_zipfilepath('latest', bot_info.system,
+                                          'ia32', 'release'),
+                    local_zip])
+    if bot_info.system == 'windows':
+      with zipfile.ZipFile(local_zip, 'r') as zip_file:
+        zip_file.extractall(path=sdk_download)
+    else:
+      # We don't keep the execution bit if we use python's zipfile on possix.
+      RunProcess(['unzip', local_zip, '-d', sdk_download])
+
 def GetPackagePath(bot_info):
   if bot_info.is_sample:
     if bot_info.is_repo:
@@ -154,24 +182,28 @@ def GetBuildRoot(bot_info):
   return utils.GetBuildRoot(system, mode='release', arch='ia32',
                             target_os=system)
 
+def SafeDelete(path):
+  if bot_info.system == 'windows':
+    if os.path.exists(path):
+      args = ['cmd.exe', '/c', 'rmdir', '/q', '/s', path]
+      RunProcess(args)
+  else:
+    shutil.rmtree(path, ignore_errors=True)
+
+
 def GetPackageCopy(bot_info):
   build_root = GetBuildRoot(bot_info)
   package_copy = os.path.join(build_root, 'package_copy')
   package_path = GetPackagePath(bot_info)
   copy_path = os.path.join(package_copy, bot_info.package_name)
-  # Clean out old copy
-  if bot_info.system == 'windows':
-    if os.path.exists(package_copy):
-      args = ['cmd.exe', '/c', 'rmdir', '/q', '/s', package_copy]
-      RunProcess(args)
-  else:
-    shutil.rmtree(package_copy, ignore_errors=True)
+  SafeDelete(package_copy)
   no_git = shutil.ignore_patterns('.git')
   shutil.copytree(package_path, copy_path, symlinks=False, ignore=no_git)
   return copy_path
 
 def GetSdkBin():
-  return os.path.join(os.getcwd(), GetBuildRoot(bot_info), 'dart-sdk', 'bin')
+  return os.path.join(os.getcwd(), GetBuildRoot(bot_info),
+                      'sdk-down', 'dart-sdk', 'bin')
 
 def GetVM():
   executable = 'dart.exe' if bot_info.system == 'windows' else 'dart'
@@ -324,8 +356,7 @@ if __name__ == '__main__':
                                            GetVM(),
                                            copy_path)
 
-  BuildSDK(bot_info)
-
+  GetSDK(bot_info)
   print 'Running testing in copy of package in %s' % copy_path
   RunPrePubUpgradeHooks(test_config)
   RunPubUpgrade(bot_info, copy_path)
