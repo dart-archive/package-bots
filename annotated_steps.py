@@ -146,12 +146,12 @@ def BuildSDK(bot_info):
 def GetSDK(bot_info):
   with BuildStep('Get sdk'):
     namer = bot_utils.GCSNamer(channel=bot_utils.Channel.DEV)
-    sdk_download = os.path.join(GetBuildRoot(bot_info), 'sdk-down')
     # TODO(ricow): Be smarter here, only download if new.
-    SafeDelete(sdk_download)
-    if not os.path.exists(sdk_download):
-      os.makedirs(sdk_download)
-    local_zip = os.path.join(sdk_download, 'sdk.zip')
+    build_root = GetBuildRoot(bot_info)
+    SafeDelete(build_root)
+    if not os.path.exists(build_root):
+      os.makedirs(build_root)
+    local_zip = os.path.join(build_root, 'sdk.zip')
     gsutils = bot_utils.GSUtil()
     gsutils.execute(['cp',
                     namer.sdk_zipfilepath('latest', bot_info.system,
@@ -159,10 +159,10 @@ def GetSDK(bot_info):
                     local_zip])
     if bot_info.system == 'windows':
       with zipfile.ZipFile(local_zip, 'r') as zip_file:
-        zip_file.extractall(path=sdk_download)
+        zip_file.extractall(path=build_root)
     else:
       # We don't keep the execution bit if we use python's zipfile on possix.
-      RunProcess(['unzip', local_zip, '-d', sdk_download])
+      RunProcess(['unzip', local_zip, '-d', build_root])
 
 def GetPackagePath(bot_info):
   if bot_info.is_sample:
@@ -310,10 +310,6 @@ def RunPackageTesting(bot_info, package_path):
   with BuildStep('Test vm release mode', swallow_error=True):
     args = [sys.executable, 'tools/test.py',
             '-mrelease', '-rvm', '-cnone'] + standard_args
-    RunProcess(args)
-  with BuildStep('Test vm debug mode', swallow_error=True):
-    args = [sys.executable, 'tools/test.py',
-            '-mdebug', '-rvm', '-cnone'] + standard_args
     RunProcess(args)
   with BuildStep('Test dartium', swallow_error=True):
     test_args = [sys.executable, 'tools/test.py',
