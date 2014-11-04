@@ -8,6 +8,6 @@ vars = {
 }
 
 deps = {
-  "tools":
+  "dart/tools":
       (Var("googlecode_url") % "dart") + "/branches/bleeding_edge/dart/tools"
 }
