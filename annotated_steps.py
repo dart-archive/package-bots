@@ -148,7 +148,7 @@ def GetSDK(bot_info):
     namer = bot_utils.GCSNamer(channel=bot_utils.Channel.DEV)
     # TODO(ricow): Be smarter here, only download if new.
     build_root = GetBuildRoot(bot_info)
-    SafeDelete(build_root)
+    SafeDelete(os.path.join(build_root, 'dart-sdk'))
     if not os.path.exists(build_root):
       os.makedirs(build_root)
     local_zip = os.path.join(build_root, 'sdk.zip')
@@ -203,7 +203,7 @@ def GetPackageCopy(bot_info):
 
 def GetSdkBin():
   return os.path.join(os.getcwd(), GetBuildRoot(bot_info),
-                      'sdk-down', 'dart-sdk', 'bin')
+                      'dart-sdk', 'bin')
 
 def GetVM():
   executable = 'dart.exe' if bot_info.system == 'windows' else 'dart'
@@ -351,7 +351,6 @@ if __name__ == '__main__':
   test_config = config_parser.ConfigParser(config_file,
                                            GetVM(),
                                            copy_path)
-
   GetSDK(bot_info)
   print 'Running testing in copy of package in %s' % copy_path
   RunPrePubUpgradeHooks(test_config)
