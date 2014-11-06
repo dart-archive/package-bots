@@ -11,10 +11,8 @@ vars = {
 }
 
 deps = {
-  #### temporary until we fix configs ###
-  "dart":
-       (Var("googlecode_url") % "dart") + "/branches/bleeding_edge/dart",
-  #### end temporary ###
+  "dart/tools":
+       (Var("googlecode_url") % "dart") + "/branches/bleeding_edge/dart/tools",
   "dart/third_party/d8":
       (Var("googlecode_url") % "dart") + "/third_party/d8" + Var("d8_rev"),
   "dart/third_party/gsutil":
