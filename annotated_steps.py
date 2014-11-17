@@ -165,14 +165,6 @@ def GetSDK(bot_info):
       RunProcess(['unzip', local_zip, '-d', build_root])
 
 def GetPackagePath(bot_info):
-  if bot_info.is_sample:
-    if bot_info.is_repo:
-      third_party = ['todomvc', 'angular_todo', 'todomvc_performance',
-                     'dromaeo']
-      if bot_info.package_name in third_party:
-        return os.path.join('samples', 'third_party', bot_info.package_name)
-      return os.path.join('samples', bot_info.package_name)
-    return os.path.join('third_party', 'samples', bot_info.package_name)
   if bot_info.is_repo:
     return os.path.join('pkg', bot_info.package_name)
   return os.path.join('third_party', 'pkg', bot_info.package_name)
