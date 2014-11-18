@@ -303,11 +303,12 @@ def RunPackageTesting(bot_info, package_path):
     args = [sys.executable, 'tools/test.py',
             '-mrelease', '-rvm', '-cnone'] + standard_args
     RunProcess(args)
-  with BuildStep('Test dartium', swallow_error=True):
-    test_args = [sys.executable, 'tools/test.py',
-                 '-mrelease', '-rdartium', '-cnone', '-j4']
-    args = xvfb_args + test_args + standard_args
-    RunProcess(args)
+  if bot_info.system != 'windows':
+    with BuildStep('Test dartium', swallow_error=True):
+      test_args = [sys.executable, 'tools/test.py',
+                   '-mrelease', '-rdartium', '-cnone', '-j4']
+      args = xvfb_args + test_args + standard_args
+      RunProcess(args)
 
   for runtime in JS_RUNTIMES[system]:
     with BuildStep('dart2js-%s' % runtime, swallow_error=True):
