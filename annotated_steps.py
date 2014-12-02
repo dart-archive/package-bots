@@ -170,7 +170,11 @@ def GetPackagePath(bot_info):
   return os.path.join('third_party', 'pkg', bot_info.package_name)
 
 def GetBuildRoot(bot_info):
-  system = 'win32' if bot_info.system == 'windows' else bot_info.system
+  system = bot_info.system
+  if system == 'windows':
+    system = 'win32'
+  if system == 'mac':
+    system = 'macos'
   return utils.GetBuildRoot(system, mode='release', arch='ia32',
                             target_os=system)
 
