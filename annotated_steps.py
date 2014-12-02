@@ -289,7 +289,7 @@ def FixupTestControllerJS(package_path):
 JS_RUNTIMES = {
   'windows': ['ff', 'chrome', 'ie10'],
   'linux': ['d8', 'jsshell', 'ff', 'chrome'],
-  'mac': ['safari', 'chrome'],
+  'mac': ['safari'],
 }
 
 def RunPackageTesting(bot_info, package_path):
