@@ -44,7 +44,7 @@ class BotInfo(object):
   """
   def __init__(self, system, package_name, is_repo, is_sample):
       self.system = system
-      self.package_name = package_name
+      self.package_name = package_name.replace('_', '-')
       self.is_repo = is_repo
       self.is_sample = is_sample
 
