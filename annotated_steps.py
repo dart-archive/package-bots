@@ -36,6 +36,12 @@ else:
 # We are deliberately not using bot utils from the dart repo.
 PACKAGES_BUILDER = r'packages-(windows|linux|mac)(-repo)?(-sample)?-(.*)'
 
+NAME_OVERRIDES = {
+  'dart-protobuf' : 'protobuf',
+  'polymer-dart' : 'polymer',
+  'serialization.dart' : 'serialization'
+}
+
 class BotInfo(object):
   """
   Stores the info extracted from the bot name
@@ -44,7 +50,8 @@ class BotInfo(object):
   """
   def __init__(self, system, package_name, is_repo, is_sample):
       self.system = system
-      self.package_name = package_name.replace('-', '_')
+      self.package_name = NAME_OVERRIDES.get(package_name,
+                                             package_name.replace('-', '_'))
       self.is_repo = is_repo
       self.is_sample = is_sample
 
