@@ -1,4 +1,6 @@
 Push a change to this file to trigger a build of our bots. For example,
-increment the counter below.
+change the haiku below.
 
-Trigger count: 29
+A trigger haiku
+Will cause the bots to re-run
+To test all your stuff
