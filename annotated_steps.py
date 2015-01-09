@@ -306,7 +306,7 @@ def RunPackageTesting(bot_info, package_path):
                    '--use-sdk', '--report', '--progress=buildbot',
                    '--clear_browser_cache',
                    '--package-root=%s' % package_root,
-                   '--write-debug-log',
+                   '--write-debug-log', '-v',
                    '--time']
   system = bot_info.system
   xvfb_command = ['xvfb-run', '-a', '--server-args=-screen 0 1024x768x24']
