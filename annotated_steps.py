@@ -134,7 +134,6 @@ def RunProcess(command, shell=False, extra_env=None):
   """
   env = dict(os.environ)
   env['TERM'] = 'nocolor'
-  env['PUB_HOSTED_URL'] = 'https://buildbot-dart-dot-dartlang-pub.appspot.com'
   if extra_env:
     env.update(extra_env)
   print "Running: %s" % ' '.join(command)
