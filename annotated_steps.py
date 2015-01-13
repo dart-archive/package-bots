@@ -263,7 +263,7 @@ def RunPubUpgrade(bot_info, path):
       RunProcess(args, extra_env=extra_env)
 
 def RunPubBuild(bot_info, path, folder, mode=None):
-  skip_pub_build = ['dart-protobuf']
+  skip_pub_build = ['dart-protobuf', 'rpc']
   with BuildStep('Pub build on %s' % folder):
     if bot_info.package_name in skip_pub_build:
       print "Not running pub build"
