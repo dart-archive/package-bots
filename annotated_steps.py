@@ -39,7 +39,8 @@ PACKAGES_BUILDER = r'packages-(windows|linux|mac)(-repo)?(-sample)?-(.*)'
 NAME_OVERRIDES = {
   'dart-protobuf' : 'protobuf',
   'polymer-dart' : 'polymer',
-  'serialization.dart' : 'serialization'
+  'serialization.dart' : 'serialization',
+  'unittest-stable' : 'unittest'
 }
 
 class BotInfo(object):
