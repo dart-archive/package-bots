@@ -302,14 +302,16 @@ JS_RUNTIMES = {
   'mac': ['safari'],
 }
 
-def RunPackageTesting(bot_info, package_path):
-  package_root = os.path.join(package_path, 'packages')
+def RunPackageTesting(bot_info, package_path, folder='test'):
+  package_name = os.path.basename(os.path.dirname(package_path))
+  package_root = os.path.join(package_path, folder, 'packages')
   standard_args = ['--suite-dir=%s' % package_path,
                    '--use-sdk', '--report', '--progress=buildbot',
                    '--clear_browser_cache',
                    '--package-root=%s' % package_root,
                    '--write-debug-log', '-v',
-                   '--time']
+                   '--time',
+                   '%s/%s/%s/' % (package_name, package_name, folder)]
   system = bot_info.system
   xvfb_command = ['xvfb-run', '-a', '--server-args=-screen 0 1024x768x24']
   xvfb_args =  xvfb_command if system == 'linux' else []
@@ -369,5 +371,6 @@ if __name__ == '__main__':
   FixupTestControllerJS(copy_path)
 
   RunPreTestHooks(test_config)
-  RunPackageTesting(bot_info, copy_path)
+  RunPackageTesting(bot_info, copy_path, 'test')
+  RunPackageTesting(bot_info, copy_path, 'build/test')
   RunPostTestHooks(test_config)
