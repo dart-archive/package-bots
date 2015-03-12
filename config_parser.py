@@ -10,6 +10,7 @@ VALID_TYPES = {
   # Hooks mapping names (as displayed by the buildbot) to commands to execute.
   'pre_pub_upgrade_hooks' : dict,
   'pre_pub_build_hooks' : dict,
+  'post_pub_build_hooks' : dict,
   'pre_test_hooks' : dict,
   'post_test_hooks' : dict
 }
@@ -18,6 +19,9 @@ VALID_TYPES = {
 Example config:
 {
   "pre_pub_build_hooks" : {
+      "Fixing up something": "$dart $project_root/test.dart first"
+  },
+  "post_pub_build_hooks" : {
       "Fixing up something": "$dart $project_root/test.dart first"
   },
   "pre_pub_upgrade_hooks" : {
@@ -89,6 +93,9 @@ class ConfigParser(object):
 
   def get_pre_pub_build_hooks(self):
     return self._get_hooks('pre_pub_build_hooks')
+
+  def get_post_pub_build_hooks(self):
+    return self._get_hooks('post_pub_build_hooks')
 
   def get_pre_test_hooks(self):
     return self._get_hooks('pre_test_hooks')

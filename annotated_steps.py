@@ -361,6 +361,9 @@ def RunPrePubUpgradeHooks(test_config):
 def RunPrePubBuildHooks(test_config):
   RunHooks(test_config.get_pre_pub_build_hooks(), "Pre pub build hooks")
 
+def RunPostPubBuildHooks(test_config):
+  RunHooks(test_config.get_post_pub_build_hooks(), "Pre pub build hooks")
+
 def RunPreTestHooks(test_config):
   RunHooks(test_config.get_pre_test_hooks(), "Pre test hooks")
 
@@ -383,6 +386,7 @@ if __name__ == '__main__':
   RunPrePubBuildHooks(test_config)
   RunPubBuild(bot_info, copy_path, 'web')
   RunPubBuild(bot_info, copy_path, 'test', 'debug')
+  RunPostPubBuildHooks(test_config)
   FixupTestControllerJS(copy_path)
 
   RunPreTestHooks(test_config)
