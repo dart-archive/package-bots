@@ -318,6 +318,10 @@ def RunPackageTesting(bot_info, package_path):
     args = [sys.executable, 'tools/test.py',
             '-mrelease', '-rvm', '-cnone'] + standard_args
     RunProcess(args)
+  with BuildStep('Test analyzer', swallow_error=True):
+    args = [sys.executable, 'tools/test.py',
+            '-mrelease', '-rnone', '-cdart2analyzer'] + standard_args
+    RunProcess(args)
   if bot_info.system != 'windows':
     with BuildStep('Test dartium', swallow_error=True):
       test_args = [sys.executable, 'tools/test.py',
