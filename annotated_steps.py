@@ -326,7 +326,7 @@ def RunPackageTesting(bot_info, package_path, folder='test'):
   system = bot_info.system
   xvfb_command = ['xvfb-run', '-a', '--server-args=-screen 0 1024x768x24']
   xvfb_args =  xvfb_command if system == 'linux' else []
-  suffix = ' under build' if folder == 'test/build' else ''
+  suffix = ' under build' if folder == 'build/test' else ''
   with BuildStep('Test vm release mode%s' % suffix, swallow_error=True):
     args = [sys.executable, 'tools/test.py',
             '-mrelease', '-rvm', '-cnone'] + standard_args
