@@ -326,23 +326,24 @@ def RunPackageTesting(bot_info, package_path, folder='test'):
   system = bot_info.system
   xvfb_command = ['xvfb-run', '-a', '--server-args=-screen 0 1024x768x24']
   xvfb_args =  xvfb_command if system == 'linux' else []
-  with BuildStep('Test vm release mode on %s' % folder, swallow_error=True):
+  suffix = ' under build' if folder == 'test/build' else ''
+  with BuildStep('Test vm release mode%s' % suffix, swallow_error=True):
     args = [sys.executable, 'tools/test.py',
             '-mrelease', '-rvm', '-cnone'] + standard_args
     RunProcess(args)
-  with BuildStep('Test analyzer on %s' % folder, swallow_error=True):
+  with BuildStep('Test analyzer%s' % suffix, swallow_error=True):
     args = [sys.executable, 'tools/test.py',
             '-mrelease', '-rnone', '-cdart2analyzer'] + standard_args
     RunProcess(args)
   if bot_info.system != 'windows':
-    with BuildStep('Test dartium on %s' % folder, swallow_error=True):
+    with BuildStep('Test dartium%s' % suffix, swallow_error=True):
       test_args = [sys.executable, 'tools/test.py',
                    '-mrelease', '-rdartium', '-cnone', '-j4']
       args = xvfb_args + test_args + standard_args
       RunProcess(args)
 
   for runtime in JS_RUNTIMES[system]:
-    with BuildStep('dart2js-%s on %s' % (runtime, folder), swallow_error=True):
+    with BuildStep('dart2js-%s%s' % (runtime, suffix), swallow_error=True):
       test_args = [sys.executable, 'tools/test.py',
                    '-mrelease', '-r%s' % runtime, '-cdart2js', '-j4',
                    '--dart2js-batch']
