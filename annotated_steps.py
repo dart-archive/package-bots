@@ -136,7 +136,7 @@ def RunProcess(command, shell=False, extra_env=None):
   env = dict(os.environ)
   env['TERM'] = 'nocolor'
   env['PUB_HOSTED_URL'] = (
-      'https://buildbot-dart-2015-03-18-dot-dartlang-pub.appspot.com')
+      'https://buildbot-dart-2015-03-25-dot-dartlang-pub.appspot.com')
   if 'GIT_USER_AGENT' in env:
     del env['GIT_USER_AGENT']
   if extra_env:
