@@ -7,7 +7,7 @@ vars = {
   "googlecode_url": "http://%s.googlecode.com/svn",
   "gsutil_rev" : "@33376",
   "d8_rev" : "@39739",
-  "firefox_jsshell_rev" : "@35614",
+  "firefox_jsshell_rev" : "@44282",
 }
 
 deps = {
