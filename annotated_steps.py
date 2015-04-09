@@ -340,7 +340,10 @@ def RunPackageTesting(bot_info, package_path, folder='test'):
     args = [sys.executable, 'tools/test.py',
             '-mrelease', '-rvm', '-cnone'] + standard_args
     args.extend(LogsArgument())
-    RunProcess(args)
+    # For easy integration testing we give access to the sdk bin directory.
+    # This only makes sense on vm testing.
+    extra_env = { 'DART_SDK_BIN' : GetSdkBin() }
+    RunProcess(args, extra_env=extra_env)
   with BuildStep('Test analyzer%s' % suffix, swallow_error=True):
     args = [sys.executable, 'tools/test.py',
             '-mrelease', '-rnone', '-cdart2analyzer'] + standard_args
