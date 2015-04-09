@@ -304,6 +304,14 @@ JS_RUNTIMES = {
   'mac': ['safari'],
 }
 
+is_first_test_run = True
+def LogsArgument():
+  global is_first_test_run
+  if is_first_test_run:
+    is_first_test_run = False
+    return []
+  return ['--append_logs']
+
 def RunPackageTesting(bot_info, package_path, folder='test'):
   package_name = os.path.basename(package_path)
   if package_name == '':
@@ -331,16 +339,19 @@ def RunPackageTesting(bot_info, package_path, folder='test'):
   with BuildStep('Test vm release mode%s' % suffix, swallow_error=True):
     args = [sys.executable, 'tools/test.py',
             '-mrelease', '-rvm', '-cnone'] + standard_args
+    args.extend(LogsArgument())
     RunProcess(args)
   with BuildStep('Test analyzer%s' % suffix, swallow_error=True):
     args = [sys.executable, 'tools/test.py',
             '-mrelease', '-rnone', '-cdart2analyzer'] + standard_args
+    args.extend(LogsArgument())
     RunProcess(args)
   if bot_info.system != 'windows':
     with BuildStep('Test dartium%s' % suffix, swallow_error=True):
       test_args = [sys.executable, 'tools/test.py',
                    '-mrelease', '-rdartium', '-cnone', '-j4']
       args = xvfb_args + test_args + standard_args
+      args.extend(LogsArgument())
       RunProcess(args)
 
   for runtime in JS_RUNTIMES[system]:
@@ -349,6 +360,7 @@ def RunPackageTesting(bot_info, package_path, folder='test'):
                    '-mrelease', '-r%s' % runtime, '-cdart2js', '-j4',
                    '--dart2js-batch']
       args = xvfb_args + test_args + standard_args
+      args.extend(LogsArgument())
       RunProcess(args)
 
 
