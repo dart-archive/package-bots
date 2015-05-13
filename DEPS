@@ -22,3 +22,20 @@ deps = {
       (Var("googlecode_url") % "dart") + "/third_party/firefox_jsshell" +
        Var("firefox_jsshell_rev"),
 }
+
+hooks = [
+  {
+    'name': 'checked_in_dart_binaries',
+    'pattern': '.',
+    'action': [
+      'download_from_google_storage',
+      '--no_auth',
+      '--no_resume',
+      '--bucket',
+      'dart-dependencies',
+      '-d',
+      '-r',
+      'dart/tools/testing/bin',
+    ],
+  },
+]
