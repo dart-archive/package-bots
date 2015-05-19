@@ -6,32 +6,13 @@
 import os
 import json
 
-def _TestDictOfStrings(key, value):
-  if not isinstance(value, dict):
-    raise Exception('Wrong type for key "%s", expecting dict, got %s.' %
-                    (key, type(value)))
-  for k, v in value.iteritems():
-    if not isinstance(k, basestring):
-      raise Exception("In %s the decription %s was not a string but %s" %
-                      (key, k, type(k)))
-    if not isinstance(v, basestring):
-      raise Exception("In %s the command %s was not a string but %s" %
-                      (key, v, type(v)))
-
-def _TestString(key, value):
-  if not isinstance(value, basestring):
-    raise Exception('Wrong type for key "%s", expecting string, got %s.' %
-                    (key, type(value)))
-
 VALID_TYPES = {
   # Hooks mapping names (as displayed by the buildbot) to commands to execute.
-  'pre_pub_upgrade_hooks' : _TestDictOfStrings,
-  'pre_pub_build_hooks' : _TestDictOfStrings,
-  'post_pub_build_hooks' : _TestDictOfStrings,
-  'pre_test_hooks' : _TestDictOfStrings,
-  'post_test_hooks' : _TestDictOfStrings,
-  # Using a custom script to run steps.
-  'use_custom_script' : _TestString,
+  'pre_pub_upgrade_hooks' : dict,
+  'pre_pub_build_hooks' : dict,
+  'post_pub_build_hooks' : dict,
+  'pre_test_hooks' : dict,
+  'post_test_hooks' : dict
 }
 
 """
@@ -54,11 +35,6 @@ Example config:
       "Code coverage": "$dart $project_root/test.dart coverage"
   }
 }
-
-Alternatively you can give a custom script to run:
-{
-  "use_custom_script" : "$python tools/annotated_scripts.py"
-}
 """
 
 
@@ -71,23 +47,46 @@ class ConfigParser(object):
   There are a number of magic markers that can be used in the config:
     $dart: the full path to the Dart vm
     $project_root: path to the package being tested
-    $python: path to a python executable
   """
-  def __init__(self, file):
+  def __init__(self, file, dart_binary, project_root):
     self.config = self._get_config(file)
-    self._validate_config_file()
+    self.dart_binary = dart_binary
+    self.project_root = project_root
 
-  def _validate_config_file(self):
-    for (key, value) in self.config.iteritems():
-      if not (key in VALID_TYPES):
-        raise Exception("Unknown configuration key %s" % key)
-      type_test = VALID_TYPES[key]
-      type_test(key, value)
-    if "use_custom_script" in self.config and len(self.config) > 1:
-      raise Exception("Cannot use 'use_custom_script' combined with hooks.")
+  def _validate_config_value(self, value, key):
+    valid_types = VALID_TYPES[key]
+    if value:
+      if isinstance(value, valid_types):
+        return value
+      else:
+        error = 'Wrong type for key "%s", expecting %s, got %s' % (key,
+                                                                   valid_types,
+                                                                   type(value))
+        raise Exception(error)
+
+  def _is_string(self, value):
+    return isinstance(value, basestring)
+
+  def _guarantee_dict_of_strings(self, hooks):
+    if len(hooks) == 0:
+      return
+    if not all([self._is_string(v) for v in hooks.keys()]):
+      raise Exception("Command names must be strings, was %s" % hooks)
+    if not all([self._is_string(v) for v in hooks.values()]):
+      raise Exception("All commands must be strings, was %s" % hooks)
+
+  def _fill_magic_markers(self, hooks):
+    for k, v in hooks.iteritems():
+      v = v.replace('$dart', self.dart_binary)
+      v = v.replace('$project_root', self.project_root)
+      hooks[k] = v
 
   def _get_hooks(self, hook_kind):
-    return self.config.get(hook_kind) or {}
+    hooks = self._validate_config_value(self.config.get(hook_kind),
+                                        hook_kind) or {}
+    self._guarantee_dict_of_strings(hooks)
+    self._fill_magic_markers(hooks)
+    return hooks
 
   def get_pre_pub_upgrade_hooks(self):
     return self._get_hooks('pre_pub_upgrade_hooks')
@@ -103,9 +102,6 @@ class ConfigParser(object):
 
   def get_post_test_hooks(self):
     return self._get_hooks('post_test_hooks')
-
-  def get_custom_script(self):
-    return self.config.get('use_custom_script') or None
 
   def _get_config(self, file):
     if os.path.isfile(file):
