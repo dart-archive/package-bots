@@ -8,6 +8,7 @@ import imp
 import os
 import re
 import shutil
+import shlex
 import subprocess
 import sys
 import tempfile
@@ -81,7 +82,7 @@ class BuildStep(object):
 
   When the context manager is entered, it prints the "@@@BUILD_STEP __@@@"
   message. If it exits from an error being raised it displays the
-  "@@@STEP_FAILURE@@@" message.
+  "@@@STEP_FAILURE __@@@" message.
 
   If swallow_error is True, then this will catch and discard any OSError that
   is thrown. This lets you run later BuildSteps if the current one fails.
@@ -96,7 +97,7 @@ class BuildStep(object):
 
   def __exit__(self, type, value, traceback):
     if value:
-      print '@@@STEP_FAILURE@@@'
+      print '@@@STEP_FAILURE %s@@@' % self.name
       sys.stdout.flush()
       if self.swallow_error and isinstance(value, OSError):
         return True
@@ -158,7 +159,7 @@ def GetSDK(bot_info):
     namer = bot_utils.GCSNamer(channel=bot_utils.Channel.DEV)
     # TODO(ricow): Be smarter here, only download if new.
     build_root = GetBuildRoot(bot_info)
-    SafeDelete(os.path.join(build_root, 'dart-sdk'))
+    SafeDelete(os.path.join(build_root, 'dart-sdk'), bot_info)
     if not os.path.exists(build_root):
       os.makedirs(build_root)
     local_zip = os.path.join(build_root, 'sdk.zip')
@@ -188,7 +189,7 @@ def GetBuildRoot(bot_info):
   return utils.GetBuildRoot(system, mode='release', arch='ia32',
                             target_os=system)
 
-def SafeDelete(path):
+def SafeDelete(path, bot_info):
   if bot_info.system == 'windows':
     if os.path.exists(path):
       args = ['cmd.exe', '/c', 'rmdir', '/q', '/s', path]
@@ -202,22 +203,25 @@ def GetPackageCopy(bot_info):
   package_copy = os.path.join(build_root, 'package_copy')
   package_path = GetPackagePath(bot_info)
   copy_path = os.path.join(package_copy, bot_info.package_name)
-  SafeDelete(package_copy)
+  SafeDelete(package_copy, bot_info)
   no_git = shutil.ignore_patterns('.git')
   shutil.copytree(package_path, copy_path, symlinks=False, ignore=no_git)
   return copy_path
 
-def GetSdkBin():
+def GetSdkBin(bot_info):
   return os.path.join(os.getcwd(), GetBuildRoot(bot_info),
                       'dart-sdk', 'bin')
 
-def GetVM():
+def GetVM(bot_info):
   executable = 'dart.exe' if bot_info.system == 'windows' else 'dart'
-  return os.path.join(GetSdkBin(), executable)
+  return os.path.join(DART_DIR,
+                      'tools/testing/bin',
+                      bot_info.system,
+                      executable)
 
 def GetPub(bot_info):
   executable = 'pub.bat' if bot_info.system == 'windows' else 'pub'
-  return os.path.join(GetSdkBin(), executable)
+  return os.path.join(GetSdkBin(bot_info), executable)
 
 def GetPubEnv(bot_info):
   return {'PUB_CACHE' : os.path.join(os.getcwd(),
@@ -340,7 +344,7 @@ def RunPackageTesting(bot_info, package_path, folder='test'):
     args.extend(LogsArgument())
     # For easy integration testing we give access to the sdk bin directory.
     # This only makes sense on vm testing.
-    extra_env = { 'DART_SDK_BIN' : GetSdkBin() }
+    extra_env = { 'DART_SDK_BIN' : GetSdkBin(bot_info) }
     RunProcess(args, extra_env=extra_env)
   with BuildStep('Test analyzer%s' % suffix, swallow_error=True):
     args = [sys.executable, 'tools/test.py',
@@ -364,47 +368,90 @@ def RunPackageTesting(bot_info, package_path, folder='test'):
       args.extend(LogsArgument())
       RunProcess(args)
 
+def FillMagicMarkers(v, replacements):
+  def replace(match):
+    word = match.group(1)
+    if not word in replacements:
+      raise Exception("Unknown magic marker %s. Known mappings are: %s" %
+                      (word, replacements))
+    return replacements[word]
+  return re.sub(r"\$(\w+)", replace, v)
 
-def RunHooks(hooks, section_name):
+# Runs the script given by test_config.get_config if it exists, does nothing
+# otherwise.
+# Returns `True` if the script was run.
+def RunCustomScript(test_config):
+  custom_script = test_config.get_custom_script()
+  if custom_script:
+    command_string = FillMagicMarkers(custom_script, test_config.replacements)
+    with BuildStep('Running custom script %s' % command_string,
+                   swallow_error=True):
+      args = shlex.split(command_string, posix=True)
+      sys.stdout.flush()
+      exit_code = subprocess.call(args)
+      if exit_code != 0:
+        print "Custom script failed"
+    return True
+  else:
+    return False
+
+
+def RunHooks(hooks, section_name, replacements):
   for name, command in hooks.iteritems():
+    command = FillMagicMarkers(command, replacements)
     with BuildStep('%s: %s' % (section_name, name), swallow_error=True):
       RunProcess(command, shell=True)
 
 def RunPrePubUpgradeHooks(test_config):
-  RunHooks(test_config.get_pre_pub_upgrade_hooks(), "Pre pub upgrade hooks")
+  RunHooks(test_config.get_pre_pub_upgrade_hooks(), "Pre pub upgrade hooks",
+           test_config.replacements)
 
 def RunPrePubBuildHooks(test_config):
-  RunHooks(test_config.get_pre_pub_build_hooks(), "Pre pub build hooks")
+  RunHooks(test_config.get_pre_pub_build_hooks(), "Pre pub build hooks",
+           test_config.replacements)
 
 def RunPostPubBuildHooks(test_config):
-  RunHooks(test_config.get_post_pub_build_hooks(), "Pre pub build hooks")
+  RunHooks(test_config.get_post_pub_build_hooks(), "Pre pub build hooks",
+           test_config.replacements)
 
 def RunPreTestHooks(test_config):
-  RunHooks(test_config.get_pre_test_hooks(), "Pre test hooks")
+  RunHooks(test_config.get_pre_test_hooks(), "Pre test hooks",
+           test_config.replacements)
 
 def RunPostTestHooks(test_config):
   RunHooks(test_config.get_post_test_hooks(), "Post test hooks")
 
-if __name__ == '__main__':
+def main():
   bot_info = GetBotInfo()
+
   print 'Bot info: %s' % bot_info
   copy_path = GetPackageCopy(bot_info)
   config_file = os.path.join(copy_path, '.test_config')
-  test_config = config_parser.ConfigParser(config_file,
-                                           GetVM(),
-                                           copy_path)
-  GetSDK(bot_info)
-  print 'Running testing in copy of package in %s' % copy_path
-  RunPrePubUpgradeHooks(test_config)
-  RunPubUpgrade(bot_info, copy_path)
+  test_config = config_parser.ConfigParser(config_file)
+  test_config.replacements = {
+    'dart': GetVM(bot_info),
+    'project_root': copy_path,
+    'python': sys.executable
+  }
 
-  RunPrePubBuildHooks(test_config)
-  RunPubBuild(bot_info, copy_path, 'web')
-  RunPubBuild(bot_info, copy_path, 'test', 'debug')
-  RunPostPubBuildHooks(test_config)
-  FixupTestControllerJS(copy_path)
+  if not RunCustomScript(test_config):
+    print "No custom script found, running default steps."
 
-  RunPreTestHooks(test_config)
-  RunPackageTesting(bot_info, copy_path, 'test')
-  RunPackageTesting(bot_info, copy_path, 'build/test')
-  RunPostTestHooks(test_config)
+    GetSDK(bot_info)
+    print 'Running testing in copy of package in %s' % copy_path
+    RunPrePubUpgradeHooks(test_config)
+    RunPubUpgrade(bot_info, copy_path)
+
+    RunPrePubBuildHooks(test_config)
+    RunPubBuild(bot_info, copy_path, 'web')
+    RunPubBuild(bot_info, copy_path, 'test', 'debug')
+    RunPostPubBuildHooks(test_config)
+    FixupTestControllerJS(copy_path)
+
+    RunPreTestHooks(test_config)
+    RunPackageTesting(bot_info, copy_path, 'test')
+    RunPackageTesting(bot_info, copy_path, 'build/test')
+    RunPostTestHooks(test_config)
+
+if __name__ == '__main__':
+  main()
