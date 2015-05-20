@@ -82,7 +82,7 @@ class BuildStep(object):
 
   When the context manager is entered, it prints the "@@@BUILD_STEP __@@@"
   message. If it exits from an error being raised it displays the
-  "@@@STEP_FAILURE __@@@" message.
+  "@@@STEP_FAILURE@@@" message.
 
   If swallow_error is True, then this will catch and discard any OSError that
   is thrown. This lets you run later BuildSteps if the current one fails.
@@ -97,7 +97,7 @@ class BuildStep(object):
 
   def __exit__(self, type, value, traceback):
     if value:
-      print '@@@STEP_FAILURE %s@@@' % self.name
+      print '@@@STEP_FAILURE@@@'
       sys.stdout.flush()
       if self.swallow_error and isinstance(value, OSError):
         return True
