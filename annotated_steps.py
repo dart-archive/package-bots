@@ -384,8 +384,8 @@ def RunCustomScript(test_config):
   custom_script = test_config.get_custom_script()
   if custom_script:
     command_string = FillMagicMarkers(custom_script, test_config.replacements)
-    with BuildStep('Running custom script %s' % command_string,
-                   swallow_error=True):
+    with BuildStep('Running custom script'):
+      print 'Running command %s' % command_string
       args = shlex.split(command_string, posix=True)
       sys.stdout.flush()
       exit_code = subprocess.call(args)
