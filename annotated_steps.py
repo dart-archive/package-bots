@@ -212,13 +212,6 @@ def GetSdkBin(bot_info):
   return os.path.join(os.getcwd(), GetBuildRoot(bot_info),
                       'dart-sdk', 'bin')
 
-def GetVM(bot_info):
-  executable = 'dart.exe' if bot_info.system == 'windows' else 'dart'
-  return os.path.join(DART_DIR,
-                      'tools/testing/bin',
-                      bot_info.system,
-                      executable)
-
 def GetPub(bot_info):
   executable = 'pub.bat' if bot_info.system == 'windows' else 'pub'
   return os.path.join(GetSdkBin(bot_info), executable)
@@ -430,7 +423,7 @@ def main():
   config_file = os.path.join(copy_path, '.test_config')
   test_config = config_parser.ConfigParser(config_file)
   test_config.replacements = {
-    'dart': GetVM(bot_info),
+    'dart': utils.DartBinary(),
     'project_root': copy_path,
     'python': sys.executable
   }
