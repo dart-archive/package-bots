@@ -11,9 +11,8 @@ vars = {
 }
 
 deps = {
-  "dart":
-      "https://chromium.googlesource.com/external/github.com" +
-      "/dart-lang/sdk.git",
+  "dart/tools":
+       (Var("googlecode_url") % "dart") + "/branches/bleeding_edge/dart/tools",
   "dart/third_party/d8":
       (Var("googlecode_url") % "dart") + "/third_party/d8" + Var("d8_rev"),
   "dart/third_party/gsutil":
