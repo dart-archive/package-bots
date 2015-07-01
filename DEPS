@@ -4,6 +4,7 @@
 
 vars = {
   # We _don't_ inline this to allow the bots to use the mirror.
+  "sdk_tag": "@1.12.0-dev.1.0",
   "googlecode_url": "http://%s.googlecode.com/svn",
   "gsutil_rev" : "@33376",
   "d8_rev" : "@39739",
@@ -11,8 +12,9 @@ vars = {
 }
 
 deps = {
-  "dart/tools":
-       (Var("googlecode_url") % "dart") + "/branches/bleeding_edge/dart/tools",
+  "dart":
+       "https://chromium.googlesource.com/external/github.com" +
+       "/dart-lang/sdk.git" + Var("sdk_tag"),
   "dart/third_party/d8":
       (Var("googlecode_url") % "dart") + "/third_party/d8" + Var("d8_rev"),
   "dart/third_party/gsutil":
