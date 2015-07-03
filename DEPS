@@ -4,7 +4,7 @@
 
 vars = {
   # We _don't_ inline this to allow the bots to use the mirror.
-  "sdk_tag": "@1.12.0-dev.1.0",
+  "sdk_tag": "@1.12.0-dev.1.1",
   "googlecode_url": "http://%s.googlecode.com/svn",
   "gsutil_rev" : "@33376",
   "d8_rev" : "@39739",
