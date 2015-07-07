@@ -416,7 +416,7 @@ def RunCustomScript(test_config):
   else:
     return False
 
-def RunDefaultScript(bot_info, test_config):
+def RunDefaultScript(bot_info, test_config, copy_path):
   print "No custom script found, running default steps."
 
   GetSDK(bot_info)
@@ -484,7 +484,8 @@ def main():
     'python': sys.executable
   }
 
-  RunCustomScript(test_config) or RunDefaultScript(bot_info, test_config)
+  RunCustomScript(test_config) or \
+    RunDefaultScript(bot_info, test_config, copy_path)
 
 if __name__ == '__main__':
   main()
