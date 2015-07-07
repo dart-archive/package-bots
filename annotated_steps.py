@@ -349,7 +349,7 @@ def RunPackageTesting(bot_info, package_path, folder='test'):
       args.extend(LogsArgument())
       _RunWithXvfb(bot_info, args)
 
-  for runtime in JS_RUNTIMES[system]:
+  for runtime in JS_RUNTIMES[bot_info.system]:
     with BuildStep('dart2js-%s%s' % (runtime, suffix), swallow_error=True):
       test_args = [sys.executable, 'tools/test.py',
                    '-mrelease', '-r%s' % runtime, '-cdart2js', '-j4',
