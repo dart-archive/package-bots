@@ -379,10 +379,10 @@ def RunTestRunner(bot_info, test_package, package_path):
   with BuildStep('pub run test', swallow_error=True):
     platforms = set(['vm', 'chrome', 'firefox', 'dartium'])
     if bot_info.system == 'windows':
-      platforms.append('internet-explorer')
+      platforms.add('internet-explorer')
       platforms.remove('dartium')
     elif bot_info.system == 'mac':
-      platforms.append('safari')
+      platforms.add('safari')
 
     if 'platforms' in test_package:
       platforms = platforms.intersection(set(test_package['platforms']))
