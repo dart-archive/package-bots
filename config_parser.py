@@ -18,10 +18,45 @@ def _TestDictOfStrings(key, value):
       raise Exception("In %s the command %s was not a string but %s" %
                       (key, v, type(v)))
 
+def _TestListOfStrings(key, value):
+  if not isinstance(value, list):
+    raise Exception('Wrong type for key "%s", expecting list, got %s.' %
+                    (key, type(value)))
+
+  for element in value:
+    if not isinstance(element, basestring):
+      raise Exception("In %s, %s was not a string but %s" %
+                      (key, k, type(k)))
+
 def _TestString(key, value):
   if not isinstance(value, basestring):
     raise Exception('Wrong type for key "%s", expecting string, got %s.' %
                     (key, type(value)))
+
+def _TestBoolean(key, value):
+  if not isinstance(value, bool):
+    raise Exception('Wrong type for key "%s", expecting boolean, got %s.' %
+                    (key, type(value)))
+
+def _TestPackageConfig(key, value):
+  if isinstance(value, bool): return True
+  if not isinstance(value, dict):
+    raise Exception('Wrong type for key "%s", expecting bool or dict, got %s.' %
+                    (key, type(value)))
+
+  keys = value.keys()
+
+  if 'platforms' in keys:
+    _TestListOfStrings('%s.platforms' % key, value['platforms'])
+    keys.remove('platforms')
+
+  if 'barback' in keys:
+    _TestBoolean('%s.barback' % key, value['barback'])
+    keys.remove('barback')
+
+  if keys:
+    raise Exception('In %s, unexpected key %s' %
+                    (key, keys[0]))
 
 VALID_TYPES = {
   # Hooks mapping names (as displayed by the buildbot) to commands to execute.
@@ -32,6 +67,8 @@ VALID_TYPES = {
   'post_test_hooks' : _TestDictOfStrings,
   # Using a custom script to run steps.
   'use_custom_script' : _TestString,
+  # Using or configuring the test package
+  'test_package' : _TestPackageConfig,
 }
 
 """
@@ -106,6 +143,15 @@ class ConfigParser(object):
 
   def get_custom_script(self):
     return self.config.get('use_custom_script') or None
+
+  # TODO(nweiz): Use the test package by default once all packages use it. Use
+  # its configuration file once that exists (test#46) rather than doing
+  # bot-specific configuration.
+  def get_test_package(self):
+    value = self.config.get('test_package')
+    print("test package config: %s" % value)
+    if isinstance(value, bool): return {} if value else None
+    return value
 
   def _get_config(self, file):
     if os.path.isfile(file):

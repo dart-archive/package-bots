@@ -327,9 +327,6 @@ def RunPackageTesting(bot_info, package_path, folder='test'):
                    '--write-debug-log', '-v',
                    '--time',
                    '%s/%s/%s/' % (package_name, package_name, folder)]
-  system = bot_info.system
-  xvfb_command = ['xvfb-run', '-a', '--server-args=-screen 0 1024x768x24']
-  xvfb_args =  xvfb_command if system == 'linux' else []
   suffix = ' under build' if folder == 'build/test' else ''
   with BuildStep('Test vm release mode%s' % suffix, swallow_error=True):
     args = [sys.executable, 'tools/test.py',
@@ -348,18 +345,18 @@ def RunPackageTesting(bot_info, package_path, folder='test'):
     with BuildStep('Test dartium%s' % suffix, swallow_error=True):
       test_args = [sys.executable, 'tools/test.py',
                    '-mrelease', '-rdartium', '-cnone', '-j4']
-      args = xvfb_args + test_args + standard_args
+      args = test_args + standard_args
       args.extend(LogsArgument())
-      RunProcess(args)
+      _RunWithXvfb(bot_info, args)
 
   for runtime in JS_RUNTIMES[system]:
     with BuildStep('dart2js-%s%s' % (runtime, suffix), swallow_error=True):
       test_args = [sys.executable, 'tools/test.py',
                    '-mrelease', '-r%s' % runtime, '-cdart2js', '-j4',
                    '--dart2js-batch']
-      args = xvfb_args + test_args + standard_args
+      args = test_args + standard_args
       args.extend(LogsArgument())
-      RunProcess(args)
+      _RunWithXvfb(bot_info, args)
 
 def FillMagicMarkers(v, replacements):
   def replace(match):
@@ -369,6 +366,37 @@ def FillMagicMarkers(v, replacements):
                       (word, replacements))
     return replacements[word]
   return re.sub(r"\$(\w+)", replace, v)
+
+def RunTestRunner(bot_info, test_package, package_path):
+  package_name = os.path.basename(package_path)
+  if package_name == '':
+    # when package_path had a trailing slash
+    package_name = os.path.basename(os.path.dirname(package_path))
+  package_root = os.path.join(package_path, 'packages')
+
+  pub = GetPub(bot_info)
+  extra_env = GetPubEnv(bot_info)
+  with BuildStep('pub run test', swallow_error=True):
+    platforms = set(['vm', 'chrome', 'firefox', 'dartium'])
+    if bot_info.system == 'windows':
+      platforms.append('internet-explorer')
+      platforms.remove('dartium')
+    elif bot_info.system == 'mac':
+      platforms.append('safari')
+
+    if 'platforms' in test_package:
+      platforms = platforms.intersection(set(test_package['platforms']))
+
+    with utils.ChangedWorkingDirectory(package_path):
+      test_args = [pub, 'run', 'test', '--reporter', 'expanded', '--no-color',
+                   '--platform', ','.join(platforms)]
+      if test_package.get('barback'): test_args.append('build/test')
+      _RunWithXvfb(bot_info, test_args, extra_env=extra_env)
+
+def _RunWithXvfb(bot_info, args, **kwargs):
+  if bot_info.system == 'linux':
+    args = ['xvfb-run', '-a', '--server-args=-screen 0 1024x768x24'] + args
+  RunProcess(args, **kwargs)
 
 # Runs the script given by test_config.get_config if it exists, does nothing
 # otherwise.
@@ -387,6 +415,34 @@ def RunCustomScript(test_config):
     return True
   else:
     return False
+
+def RunDefaultScript(bot_info, test_config):
+  print "No custom script found, running default steps."
+
+  GetSDK(bot_info)
+  print 'Running testing in copy of package in %s' % copy_path
+  RunPrePubUpgradeHooks(test_config)
+  RunPubUpgrade(bot_info, copy_path)
+
+  test_package = test_config.get_test_package()
+  if test_package is None or test_package.get('barback'):
+    RunPrePubBuildHooks(test_config)
+    RunPubBuild(bot_info, copy_path, 'web')
+    RunPubBuild(bot_info, copy_path, 'test', 'debug')
+    RunPostPubBuildHooks(test_config)
+
+  if test_package is not None:
+    print 'Running the test package runner'
+    RunPreTestHooks(test_config)
+    RunTestRunner(bot_info, test_package, copy_path)
+  else:
+    print 'Running tests manually'
+    FixupTestControllerJS(copy_path)
+    RunPreTestHooks(test_config)
+    RunPackageTesting(bot_info, copy_path, 'test')
+    RunPackageTesting(bot_info, copy_path, 'build/test')
+
+  RunPostTestHooks(test_config)
 
 
 def RunHooks(hooks, section_name, replacements):
@@ -428,24 +484,7 @@ def main():
     'python': sys.executable
   }
 
-  if not RunCustomScript(test_config):
-    print "No custom script found, running default steps."
-
-    GetSDK(bot_info)
-    print 'Running testing in copy of package in %s' % copy_path
-    RunPrePubUpgradeHooks(test_config)
-    RunPubUpgrade(bot_info, copy_path)
-
-    RunPrePubBuildHooks(test_config)
-    RunPubBuild(bot_info, copy_path, 'web')
-    RunPubBuild(bot_info, copy_path, 'test', 'debug')
-    RunPostPubBuildHooks(test_config)
-    FixupTestControllerJS(copy_path)
-
-    RunPreTestHooks(test_config)
-    RunPackageTesting(bot_info, copy_path, 'test')
-    RunPackageTesting(bot_info, copy_path, 'build/test')
-    RunPostTestHooks(test_config)
+  RunCustomScript(test_config) or RunDefaultScript(bot_info, test_config)
 
 if __name__ == '__main__':
   main()
