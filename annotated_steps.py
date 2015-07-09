@@ -377,12 +377,14 @@ def RunTestRunner(bot_info, test_package, package_path):
   pub = GetPub(bot_info)
   extra_env = GetPubEnv(bot_info)
   with BuildStep('pub run test', swallow_error=True):
-    platforms = set(['vm', 'chrome', 'firefox', 'dartium'])
+    # TODO(nweiz): include dartium here once sdk#23816 is fixed.
+    platforms = set(['vm', 'chrome', 'firefox'])
     if bot_info.system == 'windows':
-      platforms.add('internet-explorer')
-      platforms.remove('dartium')
+      platforms.add('ie')
+      # TODO(nweiz): remove dartium here once sdk#23816 is fixed.
     elif bot_info.system == 'mac':
       platforms.add('safari')
+      platforms.remove('firefox')
 
     if 'platforms' in test_package:
       platforms = platforms.intersection(set(test_package['platforms']))
