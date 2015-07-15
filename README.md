@@ -19,6 +19,13 @@ file:
 }
 ```
 
+Note that when using the test runner, the `.status` file is ignored. Instead,
+use [the test runner's `@TestOn` annotations][TestOn] to mark individual tests
+that should pass or fail on particular platforms, or use the `"platforms"` key
+to skip certain platforms entirely (see below).
+
+[TestOn]: https://github.com/dart-lang/test#restricting-tests-to-certain-platforms
+
 ### Platform restrictions
 
 By default, the package bots will run all browsers that are available on a given
