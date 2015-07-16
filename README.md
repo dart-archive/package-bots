@@ -55,7 +55,7 @@ transformed in the configuration:
 ```json
 {
   "test_package": {
-    "barback:" true
+    "barback": true
   }
 }
 ```
