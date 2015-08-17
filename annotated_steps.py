@@ -44,6 +44,12 @@ NAME_OVERRIDES = {
   'unittest-stable' : 'unittest'
 }
 
+# Some packages need all tests run sequentially, due to side effects.
+# This list only affects tests run with 'pub run test'.
+SERIALIZED_PACKAGES = [
+  'analyzer_cli'
+]
+
 class BotInfo(object):
   """
   Stores the info extracted from the bot name
@@ -392,6 +398,8 @@ def RunTestRunner(bot_info, test_package, package_path):
     with utils.ChangedWorkingDirectory(package_path):
       test_args = [pub, 'run', 'test', '--reporter', 'expanded', '--no-color',
                    '--platform', ','.join(platforms)]
+      if bot_info.package_name in SERIALIZED_PACKAGES:
+          test_args.append('-j1')
       if test_package.get('barback'): test_args.append('build/test')
       _RunWithXvfb(bot_info, test_args, extra_env=extra_env)
 
