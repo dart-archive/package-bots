@@ -180,6 +180,8 @@ def GetSDK(bot_info):
     else:
       # We don't keep the execution bit if we use python's zipfile on possix.
       RunProcess(['unzip', local_zip, '-d', build_root])
+    pub = GetPub(bot_info)
+    RunProcess([pub, '--version'])
 
 def GetPackagePath(bot_info):
   if bot_info.is_repo:
