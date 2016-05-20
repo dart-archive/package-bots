@@ -4,28 +4,61 @@
 
 vars = {
   # We _don't_ inline this to allow the bots to use the mirror.
-  "sdk_tag": "@1.12.0-dev.1.1",
-  "googlecode_url": "http://%s.googlecode.com/svn",
-  "gsutil_rev" : "@33376",
-  "d8_rev" : "@39739",
-  "firefox_jsshell_rev" : "@44282",
+  "sdk_tag": "@1.16.0",
+  "dart_root": "dart",
 }
 
 deps = {
   "dart":
        "https://chromium.googlesource.com/external/github.com" +
        "/dart-lang/sdk.git" + Var("sdk_tag"),
-  "dart/third_party/d8":
-      (Var("googlecode_url") % "dart") + "/third_party/d8" + Var("d8_rev"),
-  "dart/third_party/gsutil":
-      (Var("googlecode_url") % "dart") + "/third_party/gsutil" +
-       Var("gsutil_rev"),
-  "dart/third_party/firefox_jsshell":
-      (Var("googlecode_url") % "dart") + "/third_party/firefox_jsshell" +
-       Var("firefox_jsshell_rev"),
 }
 
 hooks = [
+  {
+    'name': 'd8_testing_binaries',
+    'pattern': '.',
+    'action': [
+      'download_from_google_storage',
+      '--no_auth',
+      '--no_resume',
+      '--bucket',
+      'dart-dependencies',
+      '--recursive',
+      '--directory',
+      Var('dart_root') + '/third_party/d8',
+    ],
+  },
+  {
+    "name": "gsutil",
+    "pattern": ".",
+    "action": [
+      "download_from_google_storage",
+      "--no_auth",
+      "--no_resume",
+      "--bucket",
+      "dart-dependencies",
+      "--extract",
+      "-s",
+      Var('dart_root') + "/third_party/gsutil.tar.gz.sha1",
+    ],
+  },
+  {
+    "name": "firefox_jsshell",
+    "pattern": ".",
+    "action": [
+      "download_from_google_storage",
+      "--no_auth",
+      "--no_resume",
+      "--bucket",
+      "dart-dependencies",
+      "--recursive",
+      "--auto_platform",
+      "--extract",
+      "--directory",
+      Var('dart_root') + "/third_party/firefox_jsshell",
+    ],
+  },
   {
     'name': 'checked_in_dart_binaries',
     'pattern': '.',

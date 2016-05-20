@@ -491,7 +491,7 @@ def main():
   config_file = os.path.join(copy_path, '.test_config')
   test_config = config_parser.ConfigParser(config_file)
   test_config.replacements = {
-    'dart': utils.DartBinary(),
+    'dart': utils.CheckedInSdkExecutable(),
     'project_root': copy_path,
     'python': sys.executable
   }
