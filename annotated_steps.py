@@ -328,7 +328,8 @@ def RunPackageTesting(bot_info, package_path, folder='test'):
   # that contain "folder" further down. So if folder is "test",
   # "package_name/test" matches "package_name/build/test", but
   # "package_name/package_name/test" does not.
-  standard_args = ['--suite-dir=%s' % package_path,
+  standard_args = ['--arch=ia32',
+                   '--suite-dir=%s' % package_path,
                    '--use-sdk', '--report', '--progress=buildbot',
                    '--clear_browser_cache',
                    '--package-root=%s' % package_root,
