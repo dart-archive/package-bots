@@ -30,6 +30,22 @@ hooks = [
     ],
   },
   {
+    "name": "checked_in_dart_sdks",
+    "pattern": ".",
+    "action": [
+      "download_from_google_storage",
+      "--no_auth",
+      "--no_resume",
+      "--bucket",
+      "dart-dependencies",
+      "--recursive",
+      "--auto_platform",
+      "--extract",
+      "--directory",
+      Var('dart_root') + "/tools/sdks",
+    ],
+  },
+  {
     "name": "gsutil",
     "pattern": ".",
     "action": [
