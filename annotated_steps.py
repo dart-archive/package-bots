@@ -303,7 +303,7 @@ def FixupTestControllerJS(package_path):
 
 JS_RUNTIMES = {
   'windows': ['ff', 'chrome', 'ie10'],
-  'linux': ['d8', 'jsshell', 'ff', 'chrome'],
+  'linux': ['d8', 'ff', 'chrome'],
   'mac': ['safari'],
 }
 
@@ -403,6 +403,7 @@ def RunTestRunner(bot_info, test_package, package_path):
                    '--platform', ','.join(platforms)]
       if bot_info.package_name in SERIALIZED_PACKAGES:
           test_args.append('-j1')
+      # TODO(6): If barback is needed, use --pub-serve option and pub serve test
       if test_package.get('barback'): test_args.append('build/test')
       _RunWithXvfb(bot_info, test_args, extra_env=extra_env)
 
@@ -453,6 +454,8 @@ def RunDefaultScript(bot_info, test_config, copy_path):
     FixupTestControllerJS(copy_path)
     RunPreTestHooks(test_config)
     RunPackageTesting(bot_info, copy_path, 'test')
+    # TODO(6): Packages that need barback should use the test package runner,
+    # instead of trying to run from the build/test directory.
     RunPackageTesting(bot_info, copy_path, 'build/test')
 
   RunPostTestHooks(test_config)
