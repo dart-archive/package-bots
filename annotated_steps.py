@@ -178,7 +178,7 @@ def GetSDK(bot_info):
       with zipfile.ZipFile(local_zip, 'r') as zip_file:
         zip_file.extractall(path=build_root)
     else:
-      # We don't keep the execution bit if we use python's zipfile on possix.
+      # We don't keep the execution bit if we use python's zipfile on posix.
       RunProcess(['unzip', local_zip, '-d', build_root])
     pub = GetPub(bot_info)
     RunProcess([pub, '--version'])
@@ -267,7 +267,7 @@ def RunPubUpgrade(bot_info, path):
   with BuildStep('Pub upgrade'):
     # For now, assume pub
     with ChangedWorkingDirectory(path):
-      args = [pub, 'upgrade']
+      args = [pub, 'upgrade', '--no-package-symlinks']
       RunProcess(args, extra_env=extra_env)
 
 def RunPubBuild(bot_info, path, folder, mode=None):
@@ -320,7 +320,7 @@ def RunPackageTesting(bot_info, package_path, folder='test'):
   if package_name == '':
     # when package_path had a trailing slash
     package_name = os.path.basename(os.path.dirname(package_path))
-  package_root = os.path.join(package_path, folder, 'packages')
+  package_spec_file = os.path.join(package_path, '.packages')
 
   # Note: we use package_name/package_name/folder and not package_name/folder on
   # purpose. The first package_name denotes the suite, the second is part of the
@@ -332,7 +332,7 @@ def RunPackageTesting(bot_info, package_path, folder='test'):
                    '--suite-dir=%s' % package_path,
                    '--use-sdk', '--report', '--progress=buildbot',
                    '--clear_browser_cache',
-                   '--package-root=%s' % package_root,
+                   '--packages=%s' % package_spec_file,
                    '--write-debug-log', '-v',
                    '--time',
                    '%s/%s/%s/' % (package_name, package_name, folder)]
@@ -381,7 +381,6 @@ def RunTestRunner(bot_info, test_package, package_path):
   if package_name == '':
     # when package_path had a trailing slash
     package_name = os.path.basename(os.path.dirname(package_path))
-  package_root = os.path.join(package_path, 'packages')
 
   pub = GetPub(bot_info)
   extra_env = GetPubEnv(bot_info)
