@@ -4,7 +4,7 @@
 
 vars = {
   # We _don't_ inline this to allow the bots to use the mirror.
-  "sdk_tag": "@1.16.0",
+  "sdk_tag": "@1.19.0-dev.6.0",
   "dart_root": "dart",
 }
 
