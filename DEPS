@@ -3,15 +3,35 @@
 # BSD-style license that can be found in the LICENSE file.
 
 vars = {
-  # We _don't_ inline this to allow the bots to use the mirror.
-  "sdk_tag": "@1.19.0-dev.6.0",
+  "github_mirror":
+      "https://chromium.googlesource.com/external/github.com/dart-lang/%s.git",
   "dart_root": "dart",
+  "sdk_tag": "@1.19.0-dev.6.0",
+  # yaml and all its dependencies are needed to run test.dart.
+  "yaml_tag": "@2.1.10",
+  "charcode_tag": "@1.1.0",
+  "collection_tag": "@1.9.0",
+  "path_tag": "@1.3.9",
+  "source_span_tag": "@1.2.3",
+  "string_scanner_tag": "@1.0.0",
 }
 
 deps = {
-  "dart":
-       "https://chromium.googlesource.com/external/github.com" +
-       "/dart-lang/sdk.git" + Var("sdk_tag"),
+  Var("dart_root"):
+       (Var("github_mirror") % "sdk")+ Var("sdk_tag"),
+  Var("dart_root") + "/third_party/pkg/yaml":
+       (Var("github_mirror") % "yaml") + Var("yaml_tag"),
+  Var("dart_root") + "/third_party/pkg/charcode":
+      (Var("github_mirror") % "charcode") + Var("charcode_tag"),
+  Var("dart_root") + "/third_party/pkg/collection":
+      (Var("github_mirror") % "collection") + Var("collection_tag"),
+  Var("dart_root") + "/third_party/pkg/path":
+      (Var("github_mirror") % "path") + Var("path_tag"),
+  Var("dart_root") + "/third_party/pkg/source_span":
+      (Var("github_mirror") % "source_span") + Var("source_span_tag"),
+  Var("dart_root") + "/third_party/pkg/string_scanner":
+      (Var("github_mirror") % "string_scanner") +
+      Var("string_scanner_tag"),
 }
 
 hooks = [
@@ -73,20 +93,6 @@ hooks = [
       "--extract",
       "--directory",
       Var('dart_root') + "/third_party/firefox_jsshell",
-    ],
-  },
-  {
-    'name': 'checked_in_dart_binaries',
-    'pattern': '.',
-    'action': [
-      'download_from_google_storage',
-      '--no_auth',
-      '--no_resume',
-      '--bucket',
-      'dart-dependencies',
-      '-d',
-      '-r',
-      'dart/tools/testing/bin',
     ],
   },
 ]
