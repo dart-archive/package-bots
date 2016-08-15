@@ -153,13 +153,6 @@ def RunProcess(command, shell=False, extra_env=None):
   if exit_code != 0:
     raise OSError(exit_code)
 
-def BuildSDK(bot_info):
-  with BuildStep('Build sdk'):
-    args = [sys.executable, 'tools/build.py',
-            '-mrelease,debug', '--arch=ia32',
-            'create_sdk']
-    RunProcess(args)
-
 def GetSDK(bot_info):
   with BuildStep('Get sdk'):
     namer = bot_utils.GCSNamer(channel=bot_utils.Channel.DEV)
@@ -331,7 +324,7 @@ def RunPackageTesting(bot_info, package_path, folder='test'):
   standard_args = ['--arch=ia32',
                    '--suite-dir=%s' % package_path,
                    '--use-sdk', '--report', '--progress=buildbot',
-                   '--clear_browser_cache',
+                   '--reset-browser-configuration',
                    '--packages=%s' % package_spec_file,
                    '--write-debug-log', '-v',
                    '--time',
