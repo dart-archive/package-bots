@@ -313,7 +313,15 @@ def RunPackageTesting(bot_info, package_path, folder='test'):
   if package_name == '':
     # when package_path had a trailing slash
     package_name = os.path.basename(os.path.dirname(package_path))
-  package_spec_file = os.path.join(package_path, '.packages')
+  if folder == 'build/test':
+    suffix = ' under build'
+    package_root = os.path.join(package_path, folder, 'packages')
+    package_arg = '--package-root=%s' % package_root
+  else:
+    suffix = ''
+    package_spec_file = os.path.join(package_path, '.packages')
+    package_arg = '--packages=%s' % package_spec_file
+
 
   # Note: we use package_name/package_name/folder and not package_name/folder on
   # purpose. The first package_name denotes the suite, the second is part of the
@@ -325,11 +333,10 @@ def RunPackageTesting(bot_info, package_path, folder='test'):
                    '--suite-dir=%s' % package_path,
                    '--use-sdk', '--report', '--progress=buildbot',
                    '--reset-browser-configuration',
-                   '--packages=%s' % package_spec_file,
+                   package_arg,
                    '--write-debug-log', '-v',
                    '--time',
                    '%s/%s/%s/' % (package_name, package_name, folder)]
-  suffix = ' under build' if folder == 'build/test' else ''
   with BuildStep('Test vm release mode%s' % suffix, swallow_error=True):
     args = [sys.executable, 'tools/test.py',
             '-mrelease', '-rvm', '-cnone'] + standard_args
@@ -343,14 +350,7 @@ def RunPackageTesting(bot_info, package_path, folder='test'):
             '-mrelease', '-rnone', '-cdart2analyzer'] + standard_args
     args.extend(LogsArgument())
     RunProcess(args)
-  if bot_info.system != 'windows':
-    with BuildStep('Test dartium%s' % suffix, swallow_error=True):
-      test_args = [sys.executable, 'tools/test.py',
-                   '-mrelease', '-rdartium', '-cnone', '-j4']
-      args = test_args + standard_args
-      args.extend(LogsArgument())
-      _RunWithXvfb(bot_info, args)
-
+  # TODO(27065): Restore Dartium testing once it works on test.py again.
   for runtime in JS_RUNTIMES[bot_info.system]:
     with BuildStep('dart2js-%s%s' % (runtime, suffix), swallow_error=True):
       test_args = [sys.executable, 'tools/test.py',
