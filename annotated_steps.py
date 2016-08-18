@@ -260,7 +260,7 @@ def RunPubUpgrade(bot_info, path):
   with BuildStep('Pub upgrade'):
     # For now, assume pub
     with ChangedWorkingDirectory(path):
-      args = [pub, 'upgrade', '--no-package-symlinks']
+      args = [pub, 'upgrade', '--no-packages-dir']
       RunProcess(args, extra_env=extra_env)
 
 def RunPubBuild(bot_info, path, folder, mode=None):
