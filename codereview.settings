@@ -2,5 +2,5 @@
 
 GERRIT_HOST: True
 CODE_REVIEW_SERVER: https://dart-review.googlesource.com/
-VIEW_VC: https://dart.googlesource.com/package-bots4/package-bots4/+
+VIEW_VC: https://dart.googlesource.com/package-bots/+
 PROJECT: dart
