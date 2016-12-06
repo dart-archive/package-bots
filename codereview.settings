@@ -1,3 +1,6 @@
-CODE_REVIEW_SERVER: https://chromiumcodereview.appspot.com/
-VIEW_VC: https://github.com/dart-lang/package-bots/commit/
-CC_LIST:
+# This file is used by git-cl to get repository specific information.
+
+GERRIT_HOST: True
+CODE_REVIEW_SERVER: https://dart-review.googlesource.com/
+VIEW_VC: https://dart.googlesource.com/package-bots4/package-bots4/+
+PROJECT: dart
