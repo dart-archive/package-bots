@@ -4,7 +4,7 @@ change the haiku below.
 A trigger haiku
 Will cause the bots to re-run
 To test all your stuff
-2
+
 Danish summer day
 The rain comes down in torrents
 WTF Denmark?
@@ -16,3 +16,7 @@ Same as in summer
 Haiku Haiku ku
 Hai Hai Haiku ku ku hai
 Hai ai ai ku ai
+
+Pub borked on Windows
+Trying to get some data
+Wish me luck, homie
