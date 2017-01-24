@@ -20,3 +20,7 @@ Hai ai ai ku ai
 Pub borked on Windows
 Trying to get some data
 Wish me luck, homie
+
+Why won't the bots run?
+Nothing seems to trigger them
+Bet this'll do it
