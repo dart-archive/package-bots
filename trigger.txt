@@ -4,7 +4,31 @@ change the haiku below.
 A trigger haiku
 Will cause the bots to re-run
 To test all your stuff
-2
+
 Danish summer day
 The rain comes down in torrents
 WTF Denmark?
+
+Danish winter day
+Raindrops roll down my window
+Same as in summer
+
+Haiku Haiku ku
+Hai Hai Haiku ku ku hai
+Hai ai ai ku ai
+
+Pub borked on Windows
+Trying to get some data
+Wish me luck, homie
+
+Why won't the bots run?
+Nothing seems to trigger them
+Bet this'll do it
+
+Status why you broke?
+You make the bears very sad
+Cry, little bear, cry
+
+This time I'll fix it
+I'll put it on my task list
+"Bot not triggering"

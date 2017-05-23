@@ -218,8 +218,8 @@ def GetPub(bot_info):
   return os.path.join(GetSdkBin(bot_info), executable)
 
 def GetPubEnv(bot_info):
-  return {'PUB_CACHE' : os.path.join(os.getcwd(),
-      GetBuildRoot(bot_info), 'pub_cache') }
+  pub_cache = os.path.join(os.getcwd(), GetBuildRoot(bot_info), 'pub_cache')
+  return {'PUB_CACHE': pub_cache, 'PUB_ENVIRONMENT': 'dart_bots'}
 
 # _RunPubCacheRepair and _CheckPubCacheCorruption are not used right now, but we
 # keep them around because they provide an easy way to diagnose and fix issues
