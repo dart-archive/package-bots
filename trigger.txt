@@ -40,7 +40,3 @@ So land this patch there
 The buildbot triggers
 Come from github dot com repos
 So land stuff on both
-
-Must to be fixing
-The triggers on the buildbots
-Please mister
