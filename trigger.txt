@@ -37,10 +37,6 @@ Now we're running from
 Dart dot googlesource dot com
 So land this patch there
 
-The buildbot triggers
-Come from github dot com repos
-So land stuff on both
-
 Now the trigger should
 Come from dart dot googlesource
 This lands only there
