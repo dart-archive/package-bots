@@ -48,3 +48,7 @@ This lands only there
 Trigger still broken
 Land Gerrit CL on gob
 Landed hash is new!
+
+Make sure to refresh
+And fetch the modified hash
+That Gerrit landed
