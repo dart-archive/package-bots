@@ -6,7 +6,7 @@ vars = {
   "github_mirror":
       "https://chromium.googlesource.com/external/github.com/dart-lang/",
   "dart_root": "dart",
-  "sdk_tag": "@1.19.0-dev.6.0",
+  "sdk_tag": "@1.25.0-dev.9.0",
   # yaml and all its dependencies are needed to run test.dart.
   "yaml_tag": "@2.1.10",
   "charcode_tag": "@1.1.0",
