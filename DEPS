@@ -6,32 +6,16 @@ vars = {
   "github_mirror":
       "https://chromium.googlesource.com/external/github.com/dart-lang/",
   "dart_root": "dart",
-  "sdk_tag": "@1.25.0-dev.9.0",
-  # yaml and all its dependencies are needed to run test.dart.
-  "yaml_tag": "@2.1.10",
-  "charcode_tag": "@1.1.0",
-  "collection_tag": "@1.9.0",
-  "path_tag": "@1.3.9",
-  "source_span_tag": "@1.2.3",
-  "string_scanner_tag": "@1.0.0",
+  "sdk_tag": "@f38f91bb7e8cceff5149c5ee742d1a501749e4e3",
+  # package:path is needed to run test.dart.
+  "path_tag": "@1.4.2",
 }
 
 deps = {
   Var("dart_root"):
       Var("github_mirror") + "sdk.git" + Var("sdk_tag"),
-  Var("dart_root") + "/third_party/pkg/yaml":
-      Var("github_mirror") + "yaml.git" + Var("yaml_tag"),
-  Var("dart_root") + "/third_party/pkg/charcode":
-      Var("github_mirror") + "charcode.git" + Var("charcode_tag"),
-  Var("dart_root") + "/third_party/pkg/collection":
-      Var("github_mirror") + "collection.git" + Var("collection_tag"),
   Var("dart_root") + "/third_party/pkg/path":
       Var("github_mirror") + "path.git" + Var("path_tag"),
-  Var("dart_root") + "/third_party/pkg/source_span":
-      Var("github_mirror") + "source_span.git" + Var("source_span_tag"),
-  Var("dart_root") + "/third_party/pkg/string_scanner":
-      Var("github_mirror") + "string_scanner.git" +
-      Var("string_scanner_tag"),
 }
 
 hooks = [
