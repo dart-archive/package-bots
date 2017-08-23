@@ -48,7 +48,3 @@ This lands only there
 Trigger still broken
 Land Gerrit CL on gob
 Landed hash is new!
-
-Summer in Denmark
-Last time that Dart was triggered
-Long ago forgotten
