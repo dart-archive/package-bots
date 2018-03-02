@@ -6,7 +6,7 @@ vars = {
   "github_mirror":
       "https://chromium.googlesource.com/external/github.com/dart-lang/",
   "dart_root": "dart",
-  "sdk_tag": "@f38f91bb7e8cceff5149c5ee742d1a501749e4e3",
+  "sdk_tag": "@2.0.0-dev.32.0",
   # package:path is needed to run test.dart.
   "path_tag": "@1.4.2",
 }
