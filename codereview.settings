@@ -1,6 +1,0 @@
-# This file is used by git-cl to get repository specific information.
-
-GERRIT_HOST: True
-CODE_REVIEW_SERVER: https://dart-review.googlesource.com/
-VIEW_VC: https://dart.googlesource.com/package-bots/+
-PROJECT: dart
